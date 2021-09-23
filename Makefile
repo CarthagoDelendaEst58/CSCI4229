@@ -2,7 +2,7 @@
 ifeq "$(OS)" "Windows_NT"
 CFLG=-O3 -Wall -DUSEGLEW
 LIBS=-lfreeglut -lglew32 -lglu32 -lopengl32
-CLEAN=rm *.exe *.o *.a
+CLEAN=rm hw3.exe
 else
 #  OSX
 ifeq "$(shell uname)" "Darwin"

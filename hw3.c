@@ -113,12 +113,14 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
 
     glColor3f(0.314, 0.345, 0.361);
     glBegin(GL_QUAD_STRIP);
+    // drawing the shell
     for (int angle = 0; angle <= 360; angle += 10) {
         glVertex3f(Cos(angle), 1, Sin(angle));
         glVertex3f(Cos(angle), -1, Sin(angle));
     }
     glEnd();
 
+    // drawing the two lids
     glColor3f(0.871, 0.871, 0.122);
     for (int i = 1; i >= -1; i-=2) {
         glBegin(GL_TRIANGLE_FAN);
@@ -137,10 +139,11 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
 */
 void display()
 {
-    char info[LEN];
     //  Clear screen and Z-buffer
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE); 
+    // glCullFace(GL_FRONT);
     //  Reset transformations
     glLoadIdentity();
 
@@ -160,7 +163,7 @@ void display()
     cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
     cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
 
-    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // back axle
+    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
     glEnd();
     //  Flush and swap buffer
