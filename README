@@ -1,10 +1,12 @@
 Compile the program with the command: "make"
 
-Lorenz parameters have default values but can be modified with the command line options: -s, -b, -r
-Each option must be followed with a value for the parameter modification to occur
-
-An example command to run the program: "./hw2 -s 15 -r 23.4"
+To run the program, use the command: "./hw3"
 
 The view can be rotated using the arrow keys
 
-Much of this program was built from the foundation of ex4.c
+This program was primarily built off of my hw2. The objects were created with the guidance of ex8.
+
+There is an issue with the front wheels of the vehicle causing the inside surfaces to be rendered over the outside when viewed at certain angles.
+I was not able to find a solution during the time I worked on this assignment unfortunately. Any suggestions regarding a fix would be appreciated.
+
+Total time taken: ~9-10 hours

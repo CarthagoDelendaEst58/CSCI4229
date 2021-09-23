@@ -33,24 +33,14 @@
 #define WINDOW_HEIGHT 600
 #define LEN 8194
 
+// These two convenience functions were borrowed from ex8
 #define Cos(x) (cos((x)*3.14159265/180))
 #define Sin(x) (sin((x)*3.14159265/180))
 
 double th=0;  //  Rotation angle
 double ph=0;
 
-
-void Print(char s[LEN]) {
-    int i;
-    // int bitmap_len = glutBitmapLength(GLUT_BITMAP_8_BY_13, s);
-    // glRasterPos2f(0, 0);
-    // glColor3f(1, 1, 1);
-    char * ch = s;
-    for (i = 0; i < strlen(s); i++) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *ch++);
-    }
-}
-
+// I wrote this function with the guidance of the cube function from ex8
 static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
     glPushMatrix();
     //  Offset
@@ -62,10 +52,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glBegin(GL_QUADS);
     //right
     glColor3f(rgb[0],rgb[1],rgb[2]);
-    glVertex3f(1,-1,-1);
-    glVertex3f(1,1,-1);
-    glVertex3f(1,1,1);
-    glVertex3f(1,-1,1);
+    glVertex3f(1, -1, -1);
+    glVertex3f(1, 1, -1);
+    glVertex3f(1, 1, 1);
+    glVertex3f(1, -1, 1);
     //back
     glColor3f(rgb[3],rgb[4],rgb[5]);
     glVertex3f(-1, -1, -1);
@@ -97,12 +87,12 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glVertex3f(1, 1, 1);
     glVertex3f(-1, 1, 1);
 
-    //  End
     glEnd();
-    //  Undo transformations
+    
     glPopMatrix();
 }
 
+// This function takes inspiration from the sphere1 function from ex8, essentially drawing one latitude band with no angle and using triangle fans for the lid
 static void cylinder(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
     
@@ -111,9 +101,9 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
 
+    // drawing the shell
     glColor3f(0.314, 0.345, 0.361);
     glBegin(GL_QUAD_STRIP);
-    // drawing the shell
     for (int angle = 0; angle <= 360; angle += 10) {
         glVertex3f(Cos(angle), 1, Sin(angle));
         glVertex3f(Cos(angle), -1, Sin(angle));
@@ -134,9 +124,6 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glPopMatrix();
 }
 
-/*
-* This function is called by GLUT to display the scene
-*/
 void display()
 {
     //  Clear screen and Z-buffer
@@ -150,7 +137,7 @@ void display()
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
 
-    double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059};
+    double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
     rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
     rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb); // wide body piece
@@ -166,7 +153,7 @@ void display()
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
     glEnd();
-    //  Flush and swap buffer
+    
     glFlush();
     glutSwapBuffers();
 }
@@ -212,9 +199,6 @@ void reshape(int width,int height)
     glLoadIdentity();
 }
 
-/*
-* GLUT based Hello World
-*/
 int main(int argc,char* argv[])
 {
     //  Initialize GLUT
