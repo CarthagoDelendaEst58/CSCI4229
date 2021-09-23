@@ -51,7 +51,7 @@ void Print(char s[LEN]) {
     }
 }
 
-static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
     glPushMatrix();
     //  Offset
     glTranslatef(x,y,z);
@@ -61,37 +61,37 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     //  Cube
     glBegin(GL_QUADS);
     //right
-    glColor3f(1,0,0);
+    glColor3f(rgb[0],rgb[1],rgb[2]);
     glVertex3f(1,-1,-1);
     glVertex3f(1,1,-1);
     glVertex3f(1,1,1);
     glVertex3f(1,-1,1);
     //back
-    glColor3f(0,1,0);
+    glColor3f(rgb[3],rgb[4],rgb[5]);
     glVertex3f(-1, -1, -1);
     glVertex3f(1, -1, -1);
     glVertex3f(1, 1, -1);
     glVertex3f(-1, 1, -1);
     //left
-    glColor3f(0,0,1);
+    glColor3f(rgb[0],rgb[1],rgb[2]);
     glVertex3f(-1, -1, -1);
     glVertex3f(-1, 1, -1);
     glVertex3f(-1, 1, 1);
     glVertex3f(-1, -1, 1);
     //top
-    glColor3f(0,1,1);
+    glColor3f(rgb[3],rgb[4],rgb[5]);
     glVertex3f(-1, 1, -1);
     glVertex3f(1, 1, -1);
     glVertex3f(1, 1, 1);
     glVertex3f(-1, 1, 1);
     //bottom
-    glColor3f(1,0,1);
+    glColor3f(rgb[3],rgb[4],rgb[5]);
     glVertex3f(-1, -1, -1);
     glVertex3f(1, -1, -1);
     glVertex3f(1, -1, 1);
     glVertex3f(-1, -1, 1);
     //front
-    glColor3f(1,1,0);
+    glColor3f(rgb[3],rgb[4],rgb[5]);
     glVertex3f(-1, -1, 1);
     glVertex3f(1, -1, 1);
     glVertex3f(1, 1, 1);
@@ -105,7 +105,7 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
 
 static void cylinder(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
-    //  Offset
+    
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
@@ -128,7 +128,7 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
         }
         glEnd();
     }
-    //  Undo transformations
+
     glPopMatrix();
 }
 
@@ -147,16 +147,20 @@ void display()
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
 
-    // cube(0,0,0,1,1,1,0,0);
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0);
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0);
+    double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059};
 
-    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90);
-    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90);
+    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
+    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb); // wide body piece
 
-    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90);
+    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
+    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
 
-    cylinder(-2, -0.55, 1.4, 0.6, 0.2, 0.6, 0, 90);
+    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90); // back axle
+
+    cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
+    cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
+
+    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // back axle
 
     glEnd();
     //  Flush and swap buffer
