@@ -124,6 +124,31 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glPopMatrix();
 }
 
+static void front_wing(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glBegin(GL_QUADS);
+
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, 0, -1);
+    glVertex3f(1, 0, -1);
+    glVertex3f(1, -1, -1);
+
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, 0, -1);
+    glVertex3f(1, 0, -1);
+    glVertex3f(1, -1, -1);
+
+    glEnd();
+
+    glPopMatrix();
+}
+
 void display()
 {
     //  Clear screen and Z-buffer
@@ -137,22 +162,15 @@ void display()
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
 
+    glColor3f(1, 1, 1);
+    front_wing(0, 0, 0, 1, 1, 1, 0, 0);
     double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb); // wide body piece
+    // rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
 
-    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
-    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
+    // rectangular_prism(0, 0, 0, 0, 0, 0, 0, 0, rgb);
 
-    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90); // back axle
-
-    cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-    cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-
-    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
-
-    glEnd();
+    // glEnd();
     
     glFlush();
     glutSwapBuffers();
