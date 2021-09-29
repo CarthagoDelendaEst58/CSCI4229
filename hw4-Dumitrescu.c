@@ -134,16 +134,89 @@ static void front_wing(double x, double y, double z, double dx, double dy, doubl
 
     glBegin(GL_QUADS);
 
-    glVertex3f(-1, -1, -1);
-    glVertex3f(-1, 0, -1);
-    glVertex3f(1, 0, -1);
-    glVertex3f(1, -1, -1);
+    glColor3f(1, 0, 0);
+    glVertex3f(-1, -1, -0.25);
+    glVertex3f(-1, 0, -0.125);
+    glVertex3f(1, 0, -0.125);
+    glVertex3f(1, -1, -0.25);
 
-    glVertex3f(-1, -1, -1);
-    glVertex3f(-1, 0, -1);
-    glVertex3f(1, 0, -1);
-    glVertex3f(1, -1, -1);
+    glColor3f(0, 1, 0);
+    glVertex3f(-1, -1, 0.25);
+    glVertex3f(-1, 0, 0.125);
+    glVertex3f(1, 0, 0.125);
+    glVertex3f(1, -1, 0.25);
 
+    glColor3f(0, 0, 1);
+    glVertex3f(-1, 0, -0.125);
+    glVertex3f(1, 0, -0.125);
+    glVertex3f(1, 0, 0.125);
+    glVertex3f(-1, 0, 0.125);
+    
+    glColor3f(1, 0, 1);
+    glVertex3f(1, 0, -0.125);
+    glVertex3f(1, 0, 0.125);
+    glVertex3f(1, -1, 0.25);
+    glVertex3f(1, -1, -0.25);
+
+    glColor3f(0, 1, 1);
+    glVertex3f(-1, 0, -0.125);
+    glVertex3f(-1, 0, 0.125);
+    glVertex3f(-1, -1, 0.25);
+    glVertex3f(-1, -1, -0.25);
+
+    glColor3f(1, 1, 0);
+    glVertex3f(-1, -1, 0.25);
+    glVertex3f(-1, -1, -0.25);
+    glVertex3f(1, -1, -0.25);
+    glVertex3f(1, -1, 0.25);
+
+    glColor3f(1, 0, 0);
+    glVertex3f(-0.3, -1, 0.25);
+    glVertex3f(-0.3, -1, -0.25);
+    glVertex3f(-0.3, -2.5, -0.25);
+    glVertex3f(-0.3, -2.5, 0.375);
+
+    glColor3f(0, 1, 0);
+    glVertex3f(0.3, -1, 0.25);
+    glVertex3f(0.3, -1, -0.25);
+    glVertex3f(0.3, -2.5, -0.25);
+    glVertex3f(0.3, -2.5, 0.375);
+
+    glColor3f(0, 0, 1);
+    glVertex3f(-0.3, -1, -0.25);
+    glVertex3f(0.3, -1, -0.25);
+    glVertex3f(0.3, -2.5, -0.25);
+    glVertex3f(-0.3, -2.5, -0.25);
+
+    glColor3f(1, 0, 1);
+    glVertex3f(-0.3, -1, 0.25);
+    glVertex3f(0.3, -1, 0.25);
+    glVertex3f(0.3, -2.5, 0.375);
+    glVertex3f(-0.3, -2.5, 0.375);
+
+    glColor3f(1, 1, 0);
+    glVertex3f(-0.3, -2.5, 0.375);
+    glVertex3f(0.3, -2.5, 0.375);
+    glVertex3f(0.3, -2.5, -0.25);
+    glVertex3f(-0.3, -2.5, -0.25);
+    
+    glEnd();
+
+    glPopMatrix();
+}
+
+static void body(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glBegin(GL_QUADS);
+
+    
+    
     glEnd();
 
     glPopMatrix();
@@ -162,7 +235,7 @@ void display()
     glRotatef(ph,1,0,0);
     glRotatef(th,0,1,0);
 
-    glColor3f(1, 1, 1);
+    // glColor3f(1, 1, 1);
     front_wing(0, 0, 0, 1, 1, 1, 0, 0);
     double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
@@ -208,7 +281,7 @@ void reshape(int width,int height)
     //  Undo previous transformations
     glLoadIdentity();
     //  Orthogonal projection
-    const double dim=2.5;
+    const double dim=2.6;
     double asp = (height>0) ? (double)width/height : 1;
     glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
     //  Switch to manipulating the model matrix
@@ -226,7 +299,7 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("HW3");
+    glutCreateWindow("HW4 Robert Dumitrescu");
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
