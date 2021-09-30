@@ -1,14 +1,14 @@
-Robert Dumitrescu - CSCI 4229 - HW3
+Robert Dumitrescu - CSCI 4229 - HW4
 
 Compile the program with the command: "make"
 
-To run the program, use the command: "./hw3"
+To run the program, use the command: "./hw4"
+
+Mode can be switched with "m" | Modes cycle as followed: Orthogonal -> Perspective -> First Person (I tried to put text on the screen to indicate this, but glWindowPos* seg faults every time)
 
 The view can be rotated using the arrow keys
+Eye position can be altered with w, a, s, and d
 
-This program was primarily built off of my hw2. The objects were created with the guidance of ex8.
+This program is an extension of my hw3.
 
-There is an issue with the front wheels of the vehicle causing the inside surfaces to be rendered over the outside when viewed at certain angles.
-I was not able to find a solution during the time I worked on this assignment unfortunately. Any suggestions regarding a fix would be appreciated.
-
-Total time taken: ~9-10 hours
+Total time taken: 12 hours

@@ -55,6 +55,20 @@ double xdiff = 0;
 double ydiff = 0;
 double zdiff = r;
 
+// void Print(const char* format , ...)
+// {
+//    char    buf[LEN];
+//    char*   ch=buf;
+//    va_list args;
+//    //  Turn the parameters into a character string
+//    va_start(args,format);
+//    vsnprintf(buf,LEN,format,args);
+//    va_end(args);
+//    //  Display the characters one at a time at the current raster position
+//    while (*ch)
+//       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*ch++);
+// }
+
 // I wrote this function with the guidance of the cube function from ex8
 static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
     glPushMatrix();
@@ -176,20 +190,18 @@ void display()
     //  Clear screen and Z-buffer
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE); 
-    // glCullFace(GL_FRONT);
     //  Reset transformations
     glLoadIdentity();
 
-    if (mode == 1)
+    if (mode == 1) // perspective
     {
         double Ex = -2*dim*Sin(th)*Cos(ph);
         double Ey = +2*dim        *Sin(ph);
         double Ez = +2*dim*Cos(th)*Cos(ph);
         gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
     }
-    else if (mode == 2) {
-        Lx = r*Sin(th) + xdiff;
+    else if (mode == 2) { // first person
+        Lx = r*Sin(th) + xdiff; // changing coordinates to look at based on angle and position changes
         Lz = -1*r*Cos(th)*Cos(ph) + zdiff;
         Ly = r*Sin(ph);
 
@@ -201,9 +213,6 @@ void display()
         glRotatef(ph,1,0,0);
         glRotatef(th,0,1,0);
     }
-
-    // glRotatef(ph,1,0,0);
-    // glRotatef(th,0,1,0);
 
     double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
@@ -221,7 +230,7 @@ void display()
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
     glPushMatrix();
-    glBegin(GL_QUADS);
+    glBegin(GL_QUADS); // Ground
     glColor3f(0.459, 0.239, 0);
     glVertex3f(-dim, -1.2, -dim);
     glVertex3f(-dim, -1.2, dim);
@@ -230,7 +239,8 @@ void display()
     glEnd();
     glPopMatrix();
 
-    glEnd();
+    // glWindowPos2i(5,5);
+    // Print("Mode: Orthogonal");
     
     glFlush();
     glutSwapBuffers();
@@ -252,11 +262,16 @@ void special(int key,int x,int y)
     }
     //  Up arrow key - increase elevation by 5 degrees
     else if (key == GLUT_KEY_UP) {
-        ph += 5;   
+        ph += 5;
+        if (ph > 75) 
+            ph = 75;
     }
     //  Down arrow key - decrease elevation by 5 degrees
-    else if (key == GLUT_KEY_DOWN)
+    else if (key == GLUT_KEY_DOWN) {
         ph -= 5;
+        if (ph < -75)
+            ph = -75;
+    }
     //  Request display update
     glutPostRedisplay();
 }
@@ -271,21 +286,21 @@ void key(unsigned char ch,int x,int y)
         mode = (mode+1)%3;
         if (mode == 2) {
             th = 0;
-            ph = 5;
+            ph = 0;
         }
     }
 
-    if (mode == 2) {
+    if (mode == 2) { // first person movement
         double R = 2*r;
         if (ch == 'w' || ch == 'W') {
-            xdiff += -1*(Fx-Lx)/R;
+            xdiff += -1*(Fx-Lx)/R; // determining direction of view
             zdiff += -1*(Fz-Lz)/R;
             Fx = xdiff;
             Fz = zdiff;
         }
 
         else if (ch == 'a' || ch == 'A') {
-            xdiff += -1*(Fz-Lz)/R;
+            xdiff += -1*(Fz-Lz)/R; 
             zdiff += (Fx-Lx)/R;
             Fx = xdiff;
             Fz = zdiff;
@@ -339,7 +354,7 @@ int main(int argc,char* argv[])
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
     glutCreateWindow("HW4 - Robert Dumitrescu");
-    glClearColor(0.063, 0.608, 0.902, 1);
+    glClearColor(0.063, 0.608, 0.902, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
