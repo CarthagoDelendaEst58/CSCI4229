@@ -39,6 +39,13 @@
 
 double th=0;  //  Rotation angle
 double ph=0;
+double fov=55;
+int mode = 0;
+const double dim=4;
+// double asp = (height>0) ? (double)width/height : 1;
+double asp = 1;
+// int width;
+// int height;
 
 // I wrote this function with the guidance of the cube function from ex8
 static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
@@ -124,6 +131,25 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glPopMatrix();
 }
 
+// This function was borrowed from ex9.c
+static void Project()
+{
+   //  Tell OpenGL we want to manipulate the projection matrix
+   glMatrixMode(GL_PROJECTION);
+   //  Undo previous transformations
+   glLoadIdentity();
+   //  Perspective transformation
+   if (mode)
+      gluPerspective(fov,asp,dim/16,16*dim);
+   //  Orthogonal projection
+   else
+      glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
+   //  Switch to manipulating the model matrix
+   glMatrixMode(GL_MODELVIEW);
+   //  Undo previous transformations
+   glLoadIdentity();
+}
+
 void display()
 {
     //  Clear screen and Z-buffer
@@ -134,8 +160,22 @@ void display()
     //  Reset transformations
     glLoadIdentity();
 
-    glRotatef(ph,1,0,0);
-    glRotatef(th,0,1,0);
+    if (mode)
+   {
+      double Ex = -2*dim*Sin(th)*Cos(ph);
+      double Ey = +2*dim        *Sin(ph);
+      double Ez = +2*dim*Cos(th)*Cos(ph);
+      gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
+   }
+   //  Orthogonal - set world orientation
+   else
+   {
+      glRotatef(ph,1,0,0);
+      glRotatef(th,0,1,0);
+   }
+
+    // glRotatef(ph,1,0,0);
+    // glRotatef(th,0,1,0);
 
     double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
@@ -180,6 +220,20 @@ void special(int key,int x,int y)
     glutPostRedisplay();
 }
 
+// this function was borrowed from ex9
+void key(unsigned char ch,int x,int y)
+{
+   //  Exit on ESC
+   if (ch == 27)
+      exit(0);
+   else if (ch == 'm' || ch == 'M')
+      mode = 1-mode;
+   //  Reproject
+   Project();
+   //  Tell GLUT it is necessary to redisplay the scene
+   glutPostRedisplay();
+}
+
 // This function was borrowed from ex4.c
 void reshape(int width,int height)
 {
@@ -190,9 +244,8 @@ void reshape(int width,int height)
     //  Undo previous transformations
     glLoadIdentity();
     //  Orthogonal projection
-    const double dim=2.5;
-    double asp = (height>0) ? (double)width/height : 1;
-    glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
+    // glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
+    Project();
     //  Switch to manipulating the model matrix
     glMatrixMode(GL_MODELVIEW);
     //  Undo previous transformations
@@ -208,11 +261,12 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("HW3");
+    glutCreateWindow("HW4 - Robert Dumitrescu");
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
     glutReshapeFunc(reshape);
+    glutKeyboardFunc(key);
     //  Enable Z-buffer depth test
     glEnable(GL_DEPTH_TEST);
     //  Pass control to GLUT for events

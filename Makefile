@@ -14,11 +14,11 @@ CFLG=-O3 -Wall
 LIBS=-lglut -lGLU -lGL -lm
 endif
 #  OSX/Linux/Unix/Solaris
-CLEAN=rm -f hw3-Dumitrescu *.o *.a
+CLEAN=rm -f hw4-Dumitrescu *.o *.a
 endif
 
 #  Compile and link
-hw3:hw3-Dumitrescu.c
+hw4:hw4-Dumitrescu.c
 	gcc $(CFLG) -o $@ $^   $(LIBS)
 
 #  Clean
