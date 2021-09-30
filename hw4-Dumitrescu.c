@@ -38,14 +38,22 @@
 #define Sin(x) (sin((x)*3.14159265/180))
 
 double th=0;  //  Rotation angle
-double ph=0;
+double ph=5;
 double fov=55;
 int mode = 0;
-const double dim=4;
+const double dim=10;
+const double r = dim*2;
 // double asp = (height>0) ? (double)width/height : 1;
 double asp = 1;
-// int width;
-// int height;
+double Lx = 0;
+double Ly = 1;
+double Lz = 0;
+double Fx = 0;
+double Fy = 1;
+double Fz = r;
+double xdiff = 0;
+double ydiff = 0;
+double zdiff = r;
 
 // I wrote this function with the guidance of the cube function from ex8
 static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
@@ -131,6 +139,19 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glPopMatrix();
 }
 
+int getSign(double x) {
+    if (x < 0)
+        return -1;
+    return 1;
+}
+
+double absolute(double x) {
+    if (x < 0) {
+        return x*-1;
+    }
+    return x;
+}
+
 // This function was borrowed from ex9.c
 static void Project()
 {
@@ -160,19 +181,26 @@ void display()
     //  Reset transformations
     glLoadIdentity();
 
-    if (mode)
-   {
-      double Ex = -2*dim*Sin(th)*Cos(ph);
-      double Ey = +2*dim        *Sin(ph);
-      double Ez = +2*dim*Cos(th)*Cos(ph);
-      gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
-   }
+    if (mode == 1)
+    {
+        double Ex = -2*dim*Sin(th)*Cos(ph);
+        double Ey = +2*dim        *Sin(ph);
+        double Ez = +2*dim*Cos(th)*Cos(ph);
+        gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
+    }
+    else if (mode == 2) {
+        Lx = r*Sin(th) + xdiff;
+        Lz = -1*r*Cos(th)*Cos(ph) + zdiff;
+        Ly = r*Sin(ph);
+
+        gluLookAt(Fx,Fy,Fz , Lx,Ly,Lz , 0,Cos(ph),0);
+    }
    //  Orthogonal - set world orientation
-   else
-   {
-      glRotatef(ph,1,0,0);
-      glRotatef(th,0,1,0);
-   }
+    else
+    {
+        glRotatef(ph,1,0,0);
+        glRotatef(th,0,1,0);
+    }
 
     // glRotatef(ph,1,0,0);
     // glRotatef(th,0,1,0);
@@ -192,6 +220,16 @@ void display()
 
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
+    glPushMatrix();
+    glBegin(GL_QUADS);
+    glColor3f(0.459, 0.239, 0);
+    glVertex3f(-dim, -1.2, -dim);
+    glVertex3f(-dim, -1.2, dim);
+    glVertex3f(dim, -1.2, dim);
+    glVertex3f(dim, -1.2, -dim);
+    glEnd();
+    glPopMatrix();
+
     glEnd();
     
     glFlush();
@@ -205,14 +243,17 @@ void display()
 void special(int key,int x,int y)
 {
     //  Right arrow - increase rotation by 5 degree
-    if (key == GLUT_KEY_RIGHT)
-        th += 5;
+    if (key == GLUT_KEY_RIGHT) {
+        th += 5;     
+    }
     //  Left arrow - decrease rotation by 5 degree
-    else if (key == GLUT_KEY_LEFT)
+    else if (key == GLUT_KEY_LEFT) {
         th -= 5;
+    }
     //  Up arrow key - increase elevation by 5 degrees
-    else if (key == GLUT_KEY_UP)
-        ph += 5;
+    else if (key == GLUT_KEY_UP) {
+        ph += 5;   
+    }
     //  Down arrow key - decrease elevation by 5 degrees
     else if (key == GLUT_KEY_DOWN)
         ph -= 5;
@@ -223,15 +264,51 @@ void special(int key,int x,int y)
 // this function was borrowed from ex9
 void key(unsigned char ch,int x,int y)
 {
-   //  Exit on ESC
-   if (ch == 27)
-      exit(0);
-   else if (ch == 'm' || ch == 'M')
-      mode = 1-mode;
-   //  Reproject
-   Project();
-   //  Tell GLUT it is necessary to redisplay the scene
-   glutPostRedisplay();
+    //  Exit on ESC
+    if (ch == 27)
+        exit(0);
+    else if (ch == 'm' || ch == 'M') {
+        mode = (mode+1)%3;
+        if (mode == 2) {
+            th = 0;
+            ph = 5;
+        }
+    }
+
+    if (mode == 2) {
+        double R = 2*r;
+        if (ch == 'w' || ch == 'W') {
+            xdiff += -1*(Fx-Lx)/R;
+            zdiff += -1*(Fz-Lz)/R;
+            Fx = xdiff;
+            Fz = zdiff;
+        }
+
+        else if (ch == 'a' || ch == 'A') {
+            xdiff += -1*(Fz-Lz)/R;
+            zdiff += (Fx-Lx)/R;
+            Fx = xdiff;
+            Fz = zdiff;
+        }
+
+        else if (ch == 's' || ch == 'S') {
+            xdiff += (Fx-Lx)/R;
+            zdiff += (Fz-Lz)/R;
+            Fx = xdiff;
+            Fz = zdiff;
+        }
+
+        else if (ch == 'd' || ch == 'D') {
+            xdiff += (Fz-Lz)/R;
+            zdiff += -1*(Fx-Lx)/R;
+            Fx = xdiff;
+            Fz = zdiff;
+        }
+    }
+    //  Reproject
+    Project();
+    //  Tell GLUT it is necessary to redisplay the scene
+    glutPostRedisplay();
 }
 
 // This function was borrowed from ex4.c
@@ -262,6 +339,7 @@ int main(int argc,char* argv[])
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
     glutCreateWindow("HW4 - Robert Dumitrescu");
+    glClearColor(0.063, 0.608, 0.902, 1);
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
