@@ -37,8 +37,8 @@
 #define Cos(x) (cos((x)*3.14159265/180))
 #define Sin(x) (sin((x)*3.14159265/180))
 
-double th=0;  //  Rotation angle
-double ph=5;
+double th=30;  //  Rotation angle
+double ph=15;
 double fov=55;
 int mode = 0;
 const double dim=10;
