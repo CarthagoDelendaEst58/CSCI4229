@@ -54,23 +54,83 @@ double Fz;
 double xdiff = 0;
 double ydiff = 0;
 double zdiff;
+int light     =   1;  // Lighting
+int one       =   1;  // Unit value
+int distance  =   5;  // Light distance
+int inc       =  10;  // Ball increment
+int smooth    =   1;  // Smooth/Flat shading
+int local     =   0;  // Local Viewer Model
+int emission  =   0;  // Emission intensity (%)
+double ambient   =  0.1;  // Ambient intensity (%)
+double diffuse   =  0.5;  // Diffuse doubleensity (%)
+double specular  =   0;  // Specular intensity (%)
+int shininess =   0;  // Shininess (power of two)
+float shiny   =   1;  // Shininess (value)
+int zh        =  90;  // Light azimuth
+float ylight  =   0;  // Elevation of light
+typedef struct {float x,y,z;} vtx;
+typedef struct {int A,B,C;} tri;
+#define n 500
+vtx is[n];
 
-// void Print(const char* format , ...)
-// {
-//    char    buf[LEN];
-//    char*   ch=buf;
-//    va_list args;
-//    //  Turn the parameters into a character string
-//    va_start(args,format);
-//    vsnprintf(buf,LEN,format,args);
-//    va_end(args);
-//    //  Display the characters one at a time at the current raster position
-//    while (*ch)
-//       glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,*ch++);
-// }
+
+/*
+ *  Draw vertex in polar coordinates with normal
+ *  This function was borrowed from ex13
+ */
+static void Vertex(double th,double ph)
+{
+   double x = Sin(th)*Cos(ph);
+   double y = Cos(th)*Cos(ph);
+   double z =         Sin(ph);
+   //  For a sphere at the origin, the position
+   //  and normal vectors are the same
+   glNormal3d(x,y,z);
+   glVertex3d(x,y,z);
+}
+
+/*
+ *  Draw a ball
+ *     at (x,y,z)
+ *     radius (r)
+ *  This function was borrowed from ex13
+ */
+static void ball(double x,double y,double z,double r)
+{
+   //  Save transformation
+   glPushMatrix();
+   //  Offset, scale and rotate
+   glTranslated(x,y,z);
+   glScaled(r,r,r);
+   //  White ball with yellow specular
+   float yellow[]   = {1.0,1.0,0.0,1.0};
+   float Emission[] = {0.0,0.0,0.01*emission,1.0};
+   glColor3f(1,1,1);
+   glMaterialf(GL_FRONT,GL_SHININESS,shiny);
+   glMaterialfv(GL_FRONT,GL_SPECULAR,yellow);
+   glMaterialfv(GL_FRONT,GL_EMISSION,Emission);
+   //  Bands of latitude
+   for (int ph=-90;ph<90;ph+=inc)
+   {
+      glBegin(GL_QUAD_STRIP);
+      for (int th=0;th<=360;th+=2*inc)
+      {
+         Vertex(th,ph);
+         Vertex(th,ph+inc);
+      }
+      glEnd();
+   }
+   //  Undo transofrmations
+   glPopMatrix();
+}
 
 // I wrote this function with the guidance of the cube function from ex8
 static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
+    float white[] = {1,1,1,1};
+    float black[] = {0,0,0,1};
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,white);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,black);
     glPushMatrix();
     //  Offset
     glTranslatef(x,y,z);
@@ -81,36 +141,42 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glBegin(GL_QUADS);
     //right
     glColor3f(rgb[0],rgb[1],rgb[2]);
+    glNormal3f(+1, 0, 0);
     glVertex3f(1, -1, -1);
     glVertex3f(1, 1, -1);
     glVertex3f(1, 1, 1);
     glVertex3f(1, -1, 1);
     //back
     glColor3f(rgb[3],rgb[4],rgb[5]);
+    glNormal3f( 0, 0,-1);
     glVertex3f(-1, -1, -1);
     glVertex3f(1, -1, -1);
     glVertex3f(1, 1, -1);
     glVertex3f(-1, 1, -1);
     //left
     glColor3f(rgb[0],rgb[1],rgb[2]);
+    glNormal3f(-1, 0, 0);
     glVertex3f(-1, -1, -1);
     glVertex3f(-1, 1, -1);
     glVertex3f(-1, 1, 1);
     glVertex3f(-1, -1, 1);
     //top
     glColor3f(rgb[3],rgb[4],rgb[5]);
+    glNormal3f( 0,+1, 0);
     glVertex3f(-1, 1, -1);
     glVertex3f(1, 1, -1);
     glVertex3f(1, 1, 1);
     glVertex3f(-1, 1, 1);
     //bottom
     glColor3f(rgb[3],rgb[4],rgb[5]);
+    glNormal3f( 0,-one, 0);
     glVertex3f(-1, -1, -1);
     glVertex3f(1, -1, -1);
     glVertex3f(1, -1, 1);
     glVertex3f(-1, -1, 1);
     //front
     glColor3f(rgb[3],rgb[4],rgb[5]);
+    glNormal3f( 0, 0, 1);
     glVertex3f(-1, -1, 1);
     glVertex3f(1, -1, 1);
     glVertex3f(1, 1, 1);
@@ -214,6 +280,40 @@ void display()
         glRotatef(th,0,1,0);
     }
 
+    glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
+
+    //  Light switch
+    if (light)
+    {
+        //  Translate intensity to color vectors
+        float Ambient[] = {ambient, ambient, ambient, 1.0};
+        float Diffuse[] = {diffuse, diffuse, diffuse, 1.0};
+        float Specular[] = {specular, specular, specular, 1.0};
+        //  Light position
+        float Position[]  = {distance*Cos(zh),ylight,distance*Sin(zh),1.0};
+        //  Draw light position as ball (still no lighting here)
+        glColor3f(1,1,1);
+        ball(Position[0],Position[1],Position[2] , 0.1);
+        //  OpenGL should normalize normal vectors
+        glEnable(GL_NORMALIZE);
+        //  Enable lighting
+        glEnable(GL_LIGHTING);
+        //  Location of viewer for specular calculations
+        glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,local);
+        //  glColor sets ambient and diffuse color materials
+        glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
+        //  Enable light 0
+        glEnable(GL_LIGHT0);
+        //  Set ambient, diffuse, specular components and position of light 0
+        glLightfv(GL_LIGHT0,GL_AMBIENT ,Ambient);
+        glLightfv(GL_LIGHT0,GL_DIFFUSE ,Diffuse);
+        glLightfv(GL_LIGHT0,GL_SPECULAR,Specular);
+        glLightfv(GL_LIGHT0,GL_POSITION,Position);
+    }
+    else
+        glDisable(GL_LIGHTING);
+
     double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
     rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
@@ -232,6 +332,7 @@ void display()
     glPushMatrix();
     glBegin(GL_QUADS); // Ground
     glColor3f(0.459, 0.239, 0);
+    glNormal3f(0,-1.2,0);
     glVertex3f(-dim, -1.2, -dim);
     glVertex3f(-dim, -1.2, dim);
     glVertex3f(dim, -1.2, dim);
