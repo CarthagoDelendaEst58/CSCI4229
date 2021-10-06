@@ -42,7 +42,7 @@ double ph=15;
 double fov=55;
 int mode = 0;
 const double dim=10;
-const double r = dim*2;
+double r;
 // double asp = (height>0) ? (double)width/height : 1;
 double asp = 1;
 double Lx = 0;
@@ -50,10 +50,10 @@ double Ly = 1;
 double Lz = 0;
 double Fx = 0;
 double Fy = 1;
-double Fz = r;
+double Fz;
 double xdiff = 0;
 double ydiff = 0;
-double zdiff = r;
+double zdiff;
 
 // void Print(const char* format , ...)
 // {
@@ -178,7 +178,7 @@ static void Project()
       gluPerspective(fov,asp,dim/16,16*dim);
    //  Orthogonal projection
    else
-      glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
+      glOrtho(-asp*dim, +asp*dim, -dim,+dim, -dim,+dim);
    //  Switch to manipulating the model matrix
    glMatrixMode(GL_MODELVIEW);
    //  Undo previous transformations
@@ -329,23 +329,18 @@ void key(unsigned char ch,int x,int y)
 // This function was borrowed from ex4.c
 void reshape(int width,int height)
 {
+    asp = (height>0) ? (double)width/height : 1;
     //  Set the viewport to the entire window
     glViewport(0,0, RES*width,RES*height);
-    //  Tell OpenGL we want to manipulate the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    //  Undo previous transformations
-    glLoadIdentity();
-    //  Orthogonal projection
-    // glOrtho(-asp*dim,+asp*dim, -dim,+dim, -dim,+dim);
+
     Project();
-    //  Switch to manipulating the model matrix
-    glMatrixMode(GL_MODELVIEW);
-    //  Undo previous transformations
-    glLoadIdentity();
 }
 
 int main(int argc,char* argv[])
 {
+    r = dim*2;
+    Fz = r;
+    zdiff = r;
     //  Initialize GLUT
     glutInit(&argc,argv);
     //  Request double buffered true color window with Z-buffer
