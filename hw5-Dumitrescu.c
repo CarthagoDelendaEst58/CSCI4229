@@ -67,7 +67,11 @@ double specular  =   0;  // Specular intensity (%)
 int shininess =   0;  // Shininess (power of two)
 float shiny   =   1;  // Shininess (value)
 int zh        =  90;  // Light azimuth
+<<<<<<< HEAD
 float ylight  =   0.5;  // Elevation of light
+=======
+float ylight  =   0;  // Elevation of light
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 typedef struct {float x,y,z;} vtx;
 typedef struct {int A,B,C;} tri;
 #define n 500
@@ -187,6 +191,7 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glPopMatrix();
 }
 
+<<<<<<< HEAD
 static void ground(double x, double y, double z, double dx, double dy, double dz, double th, double ph, int res) {
     float white[] = {1,1,1,1};
     float black[] = {0,0,0,1};
@@ -210,6 +215,8 @@ static void ground(double x, double y, double z, double dx, double dy, double dz
     glPopMatrix();
 }
 
+=======
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 // This function takes inspiration from the sphere1 function from ex8, essentially drawing one latitude band with no angle and using triangle fans for the lid
 static void cylinder(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
@@ -223,7 +230,10 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glColor3f(0.314, 0.345, 0.361);
     glBegin(GL_QUAD_STRIP);
     for (int angle = 0; angle <= 360; angle += 10) {
+<<<<<<< HEAD
         glNormal3f(Cos(angle), 0, Sin(angle));
+=======
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
         glVertex3f(Cos(angle), 1, Sin(angle));
         glVertex3f(Cos(angle), -1, Sin(angle));
     }
@@ -233,10 +243,15 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glColor3f(0.871, 0.871, 0.122);
     for (int i = 1; i >= -1; i-=2) {
         glBegin(GL_TRIANGLE_FAN);
+<<<<<<< HEAD
         glNormal3f(0, i, 0);
         glVertex3f(0, i, 0);
         for (int angle = 0; angle <= 360; angle += 10) {
             glNormal3f(Cos(angle), i, Sin(angle));
+=======
+        glVertex3f(0, i, 0);
+        for (int angle = 0; angle <= 360; angle += 10) {
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
             glVertex3f(Cos(angle), i, Sin(angle));
         }
         glEnd();
@@ -340,10 +355,17 @@ void display()
     else
         glDisable(GL_LIGHTING);
 
+<<<<<<< HEAD
     double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
     rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1); // long body piece
     rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1); // wide body piece
+=======
+    double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
+
+    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
+    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb); // wide body piece
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 
     cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
     cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
@@ -355,9 +377,22 @@ void display()
 
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
+<<<<<<< HEAD
     ground(0, -1.2, 0, 1, 0.2, 1, 0, 0, 20);
     // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
     // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
+=======
+    glPushMatrix();
+    glBegin(GL_QUADS); // Ground
+    glColor3f(0.459, 0.239, 0);
+    glNormal3f(0,-1.2,0);
+    glVertex3f(-dim, -1.2, -dim);
+    glVertex3f(-dim, -1.2, dim);
+    glVertex3f(dim, -1.2, dim);
+    glVertex3f(dim, -1.2, -dim);
+    glEnd();
+    glPopMatrix();
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 
     // glWindowPos2i(5,5);
     // Print("Mode: Orthogonal");
@@ -409,6 +444,7 @@ void key(unsigned char ch,int x,int y)
             ph = 0;
         }
     }
+<<<<<<< HEAD
     else if (ch == 'F') {
         zh += 5;
     }
@@ -427,6 +463,8 @@ void key(unsigned char ch,int x,int y)
             ylight = 10;
         }   
     }
+=======
+>>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 
     if (mode == 2) { // first person movement
         double R = 2*r;
