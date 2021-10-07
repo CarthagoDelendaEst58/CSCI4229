@@ -41,7 +41,7 @@ double th=30;  //  Rotation angle
 double ph=15;
 double fov=55;
 int mode = 0;
-const double dim=10;
+const double dim=8;
 double r;
 // double asp = (height>0) ? (double)width/height : 1;
 double asp = 1;
@@ -56,22 +56,20 @@ double ydiff = 0;
 double zdiff;
 int light     =   1;  // Lighting
 int one       =   1;  // Unit value
-int distance  =   5;  // Light distance
+double distance  =   5;  // Light distance
 int inc       =  10;  // Ball increment
 int smooth    =   1;  // Smooth/Flat shading
 int local     =   0;  // Local Viewer Model
 int emission  =   0;  // Emission intensity (%)
-double ambient   =  0.1;  // Ambient intensity (%)
-double diffuse   =  0.5;  // Diffuse doubleensity (%)
+double ambient   =  0.05;  // Ambient intensity (%)
+double diffuse   =  0.7;  // Diffuse doubleensity (%)
 double specular  =   0;  // Specular intensity (%)
 int shininess =   0;  // Shininess (power of two)
 float shiny   =   1;  // Shininess (value)
 int zh        =  90;  // Light azimuth
-<<<<<<< HEAD
-float ylight  =   0.5;  // Elevation of light
-=======
-float ylight  =   0;  // Elevation of light
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
+float ylight  =   2;  // Elevation of light
+int t_since_spc;
+int auto_move = 1;
 typedef struct {float x,y,z;} vtx;
 typedef struct {int A,B,C;} tri;
 #define n 500
@@ -191,7 +189,6 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glPopMatrix();
 }
 
-<<<<<<< HEAD
 static void ground(double x, double y, double z, double dx, double dy, double dz, double th, double ph, int res) {
     float white[] = {1,1,1,1};
     float black[] = {0,0,0,1};
@@ -206,17 +203,15 @@ static void ground(double x, double y, double z, double dx, double dy, double dz
     glScalef(dx,dy,dz);
 
     double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
-    for (float i = -dim; i <= dim; i += dim/res) {
-        for (float j = -dim; j <= dim; j += dim/res) {
-            rectangular_prism(i, y, j, dim/res, 1, dim/res, 0, 0, rgb2);
+    for (float i = -(dim-3); i <= (dim-3); i += (dim-3)/res) {
+        for (float j = -(dim-3); j <= (dim-3); j += (dim-3)/res) {
+            rectangular_prism(i, y, j, (dim-3)/res, 1, (dim-3)/res, 0, 0, rgb2);
         }
     }
     
     glPopMatrix();
 }
 
-=======
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 // This function takes inspiration from the sphere1 function from ex8, essentially drawing one latitude band with no angle and using triangle fans for the lid
 static void cylinder(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
@@ -230,10 +225,7 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glColor3f(0.314, 0.345, 0.361);
     glBegin(GL_QUAD_STRIP);
     for (int angle = 0; angle <= 360; angle += 10) {
-<<<<<<< HEAD
         glNormal3f(Cos(angle), 0, Sin(angle));
-=======
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
         glVertex3f(Cos(angle), 1, Sin(angle));
         glVertex3f(Cos(angle), -1, Sin(angle));
     }
@@ -243,15 +235,10 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glColor3f(0.871, 0.871, 0.122);
     for (int i = 1; i >= -1; i-=2) {
         glBegin(GL_TRIANGLE_FAN);
-<<<<<<< HEAD
         glNormal3f(0, i, 0);
         glVertex3f(0, i, 0);
         for (int angle = 0; angle <= 360; angle += 10) {
             glNormal3f(Cos(angle), i, Sin(angle));
-=======
-        glVertex3f(0, i, 0);
-        for (int angle = 0; angle <= 360; angle += 10) {
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
             glVertex3f(Cos(angle), i, Sin(angle));
         }
         glEnd();
@@ -355,17 +342,10 @@ void display()
     else
         glDisable(GL_LIGHTING);
 
-<<<<<<< HEAD
     double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
     rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1); // long body piece
     rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1); // wide body piece
-=======
-    double rgb[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
-
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb); // long body piece
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb); // wide body piece
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 
     cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
     cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
@@ -377,25 +357,14 @@ void display()
 
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
-<<<<<<< HEAD
-    ground(0, -1.2, 0, 1, 0.2, 1, 0, 0, 20);
+    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 15);
     // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
     // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
-=======
-    glPushMatrix();
-    glBegin(GL_QUADS); // Ground
-    glColor3f(0.459, 0.239, 0);
-    glNormal3f(0,-1.2,0);
-    glVertex3f(-dim, -1.2, -dim);
-    glVertex3f(-dim, -1.2, dim);
-    glVertex3f(dim, -1.2, dim);
-    glVertex3f(dim, -1.2, -dim);
-    glEnd();
-    glPopMatrix();
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
 
     // glWindowPos2i(5,5);
     // Print("Mode: Orthogonal");
+
+    // glutGet(GLUT_ELAPSED_TIME);
     
     glFlush();
     glutSwapBuffers();
@@ -431,6 +400,15 @@ void special(int key,int x,int y)
     glutPostRedisplay();
 }
 
+void idle()
+{
+    //  Elapsed time in seconds
+    double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    zh = fmod(90*t,360.0);
+    //  Tell GLUT it is necessary to redisplay the scene
+    glutPostRedisplay();
+}
+
 // this function was borrowed from ex9
 void key(unsigned char ch,int x,int y)
 {
@@ -444,7 +422,6 @@ void key(unsigned char ch,int x,int y)
             ph = 0;
         }
     }
-<<<<<<< HEAD
     else if (ch == 'F') {
         zh += 5;
     }
@@ -463,8 +440,23 @@ void key(unsigned char ch,int x,int y)
             ylight = 10;
         }   
     }
-=======
->>>>>>> 6f85bf72718a16928d8adf1a60b3136d293454d6
+    else if (ch == 32) {
+        auto_move = !auto_move;
+        t_since_spc = glutGet(GLUT_ELAPSED_TIME);
+    }
+    else if (ch == 'V') {
+        distance += 0.1;
+        // printf("distance: %f\n", distance)
+        if (distance > dim-0.5) {
+            distance = dim-0.5;
+        }
+    }
+    else if (ch == 'v') {
+        distance -= 0.1;
+        if (distance < 1) {
+            distance = 1;
+        }
+    }
 
     if (mode == 2) { // first person movement
         double R = 2*r;
@@ -496,6 +488,7 @@ void key(unsigned char ch,int x,int y)
             Fz = zdiff;
         }
     }
+    glutIdleFunc(auto_move?idle:NULL);
     //  Reproject
     Project();
     //  Tell GLUT it is necessary to redisplay the scene
@@ -525,12 +518,13 @@ int main(int argc,char* argv[])
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
     glutCreateWindow("HW4 - Robert Dumitrescu");
-    glClearColor(0.063, 0.608, 0.902, 1); // background color
+    glClearColor((double)12/255,(double)28/255,(double)65/255, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(key);
+    glutIdleFunc(idle);
     //  Enable Z-buffer depth test
     glEnable(GL_DEPTH_TEST);
     //  Pass control to GLUT for events
