@@ -1,0 +1,14 @@
+Robert Dumitrescu - CSCI 4229 - HW4
+
+Compile the program with the command: "make"
+
+To run the program, use the command: "./hw4"
+
+Mode can be switched with "m" | Modes cycle as followed: Orthogonal -> Perspective -> First Person (I tried to put text on the screen to indicate this, but glWindowPos* seg faults every time)
+
+The view can be rotated using the arrow keys
+Eye position can be altered with w, a, s, and d
+
+This program is an extension of my hw3.
+
+Total time taken: 12 hours
