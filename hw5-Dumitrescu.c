@@ -189,6 +189,7 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glPopMatrix();
 }
 
+// draws the dirt ground as an array of res x res rectangular prisms
 static void ground(double x, double y, double z, double dx, double dy, double dz, double th, double ph, int res) {
     float white[] = {1,1,1,1};
     float black[] = {0,0,0,1};
@@ -202,7 +203,7 @@ static void ground(double x, double y, double z, double dx, double dy, double dz
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
 
-    double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
+    double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0}; // brown
     for (float i = -(dim-3); i <= (dim-3); i += (dim-3)/res) {
         for (float j = -(dim-3); j <= (dim-3); j += (dim-3)/res) {
             rectangular_prism(i, y, j, (dim-3)/res, 1, (dim-3)/res, 0, 0, rgb2);
@@ -311,7 +312,7 @@ void display()
     glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
 
     //  Light switch
-    if (light)
+    if (light) // this section was borrowed from ex13
     {
         //  Translate intensity to color vectors
         float Ambient[] = {ambient, ambient, ambient, 1.0};
@@ -400,12 +401,12 @@ void special(int key,int x,int y)
     glutPostRedisplay();
 }
 
+// this function was borrowed from ex13
 void idle()
 {
     //  Elapsed time in seconds
     double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
     zh = fmod(90*t,360.0);
-    //  Tell GLUT it is necessary to redisplay the scene
     glutPostRedisplay();
 }
 
@@ -422,36 +423,35 @@ void key(unsigned char ch,int x,int y)
             ph = 0;
         }
     }
-    else if (ch == 'F') {
+    else if (ch == 'F') { // pushes ball along its orbit
         zh += 5;
     }
-    else if (ch == 'f') {
+    else if (ch == 'f') { // pushes ball backwards along its orbit
         zh -= 5;
     }
-    else if (ch == 'r') {
+    else if (ch == 'r') { // lowers ball
         ylight -= 0.1;
         if (ylight < 0) {
             ylight = 0;
         }   
     }
-    else if (ch == 'R') {
+    else if (ch == 'R') { // raises ball
         ylight += 0.1;  
         if (ylight > 10) {
             ylight = 10;
         }   
     }
-    else if (ch == 32) {
+    else if (ch == 32) { // spacebar | toggles ball orbiting automatically
         auto_move = !auto_move;
         t_since_spc = glutGet(GLUT_ELAPSED_TIME);
     }
-    else if (ch == 'V') {
+    else if (ch == 'V') { // increases radius of orbit
         distance += 0.1;
-        // printf("distance: %f\n", distance)
         if (distance > dim-0.5) {
             distance = dim-0.5;
         }
     }
-    else if (ch == 'v') {
+    else if (ch == 'v') { // decreases radius of orbit
         distance -= 0.1;
         if (distance < 1) {
             distance = 1;
@@ -517,7 +517,7 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("HW4 - Robert Dumitrescu");
+    glutCreateWindow("HW5 - Robert Dumitrescu");
     glClearColor((double)12/255,(double)28/255,(double)65/255, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);

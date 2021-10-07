@@ -1,14 +1,18 @@
-Robert Dumitrescu - CSCI 4229 - HW4
+Robert Dumitrescu - CSCI 4229 - HW5
 
 Compile the program with the command: "make"
 
-To run the program, use the command: "./hw4"
+To run the program, use the command: "./hw5"
 
-Mode can be switched with "m" | Modes cycle as followed: Orthogonal -> Perspective -> First Person (I tried to put text on the screen to indicate this, but glWindowPos* seg faults every time)
+Mode can be switched with "m" | Modes cycle as followed: Orthogonal -> Perspective -> First Person
+Spacebar can be used to toggle the automatic orbit of the light
+Light height can be modified with "r" and "R"
+Radius of the light's orbit can be modified with "v" and "V"
+THe light can be manually moved along its orbit with "f" and "F"
 
 The view can be rotated using the arrow keys
-Eye position can be altered with w, a, s, and d
+Eye position can be altered in first person mode with w, a, s, and d
 
-This program is an extension of my hw3.
+This program is an extension of my hw4.
 
-Total time taken: 12 hours
+Total time taken: 9 hours
