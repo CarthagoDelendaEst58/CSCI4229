@@ -11,6 +11,7 @@
 #include <float.h>
 #include <stdarg.h>
 #include <math.h>
+#include "CSCIx229.h"
 
 #ifdef USEGLEW
 #include <GL/glew.h>
@@ -34,8 +35,8 @@
 #define LEN 8194
 
 // These two convenience functions were borrowed from ex8
-#define Cos(x) (cos((x)*3.14159265/180))
-#define Sin(x) (sin((x)*3.14159265/180))
+// #define Cos(x) (cos((x)*3.14159265/180))
+// #define Sin(x) (sin((x)*3.14159265/180))
 
 double th=30;  //  Rotation angle
 double ph=15;
@@ -69,7 +70,9 @@ float shiny   =   1;  // Shininess (value)
 int zh        =  90;  // Light azimuth
 float ylight  =   2;  // Elevation of light
 int t_since_spc;
+double rep=1;
 int auto_move = 1;
+unsigned int textures[10];
 typedef struct {float x,y,z;} vtx;
 typedef struct {int A,B,C;} tri;
 #define n 500
@@ -139,15 +142,21 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,textures[1]);
+
     //  Cube
     glBegin(GL_QUADS);
     //right
     glColor3f(rgb[0],rgb[1],rgb[2]);
     glNormal3f(+1, 0, 0);
-    glVertex3f(1, -1, -1);
-    glVertex3f(1, 1, -1);
-    glVertex3f(1, 1, 1);
-    glVertex3f(1, -1, 1);
+    /*glTexCoord2f(0, 0);*/ glVertex3f(1, -1, -1);
+    /*glTexCoord2f(1, 0);*/ glVertex3f(1, 1, -1);
+    /*glTexCoord2f(1, 1);*/ glVertex3f(1, 1, 1);
+    /*glTexCoord2f(0, 1);*/ glVertex3f(1, -1, 1);
     //back
     glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0, 0,-1);
@@ -223,23 +232,44 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glScalef(dx,dy,dz);
 
     // drawing the shell
-    glColor3f(0.314, 0.345, 0.361);
-    glBegin(GL_QUAD_STRIP);
-    for (int angle = 0; angle <= 360; angle += 10) {
+    // glColor3f(0.314, 0.345, 0.361);
+    // glBegin(GL_QUAD_STRIP);
+    // for (int angle = 0; angle <= 360; angle += 10) {
+    //     glNormal3f(Cos(angle), 0, Sin(angle));
+    //     glVertex3f(Cos(angle), 1, Sin(angle));
+    //     glVertex3f(Cos(angle), -1, Sin(angle));
+    // }
+    // glEnd();
+
+    glBegin(GL_QUADS);
+    for (int angle = 0; angle < 360; angle += 10) {
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+        glColor3f(1,1,1);
+        glBindTexture(GL_TEXTURE_2D,textures[2]);
         glNormal3f(Cos(angle), 0, Sin(angle));
-        glVertex3f(Cos(angle), 1, Sin(angle));
-        glVertex3f(Cos(angle), -1, Sin(angle));
+        glTexCoord2f(0, 0); glVertex3f(Cos(angle), 1, Sin(angle));
+        glTexCoord2f(0, 1); glVertex3f(Cos(angle), -1, Sin(angle));
+        glTexCoord2f(1, 1); glVertex3f(Cos(angle+10), -1, Sin(angle+10));
+        glTexCoord2f(1, 0); glVertex3f(Cos(angle+10), 1, Sin(angle+10));
     }
     glEnd();
 
     // drawing the two lids
     glColor3f(0.871, 0.871, 0.122);
     for (int i = 1; i >= -1; i-=2) {
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+        glColor3f(1,1,1);
+        glBindTexture(GL_TEXTURE_2D,textures[1]);
+
         glBegin(GL_TRIANGLE_FAN);
         glNormal3f(0, i, 0);
+        glTexCoord2f(0.5,0.5);
         glVertex3f(0, i, 0);
         for (int angle = 0; angle <= 360; angle += 10) {
             glNormal3f(Cos(angle), i, Sin(angle));
+            glTexCoord2f(rep/2*Cos(angle)+0.5,rep/2*Sin(angle)+0.5);
             glVertex3f(Cos(angle), i, Sin(angle));
         }
         glEnd();
@@ -517,7 +547,7 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("HW5 - Robert Dumitrescu");
+    glutCreateWindow("HW6 - Robert Dumitrescu");
     glClearColor((double)12/255,(double)28/255,(double)65/255, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);
@@ -528,6 +558,9 @@ int main(int argc,char* argv[])
     //  Enable Z-buffer depth test
     glEnable(GL_DEPTH_TEST);
     //  Pass control to GLUT for events
+    textures[0] = LoadTexBMP("textures/img1.bmp");
+    textures[1] = LoadTexBMP("textures/wheel.bmp");
+    textures[2] = LoadTexBMP("textures/tire.bmp");
     glutMainLoop();
     //  Return to OS
     return 0;
