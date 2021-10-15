@@ -63,7 +63,7 @@ int smooth    =   1;  // Smooth/Flat shading
 int local     =   0;  // Local Viewer Model
 int emission  =   0;  // Emission intensity (%)
 double ambient   =  0.05;  // Ambient intensity (%)
-double diffuse   =  0.7;  // Diffuse doubleensity (%)
+double diffuse   =  0.8;  // Diffuse doubleensity (%)
 double specular  =   0;  // Specular intensity (%)
 int shininess =   0;  // Shininess (power of two)
 float shiny   =   1;  // Shininess (value)
@@ -129,8 +129,8 @@ static void ball(double x,double y,double z,double r)
    glPopMatrix();
 }
 
-// I wrote this function with the guidance of the cube function from ex8
-static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6]) {
+// I wrote this function with the guidance of the cube function from ex8 | texture stuff guided by ex15 and ex16
+static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6], int obj) {
     float white[] = {1,1,1,1};
     float black[] = {0,0,0,1};
     glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
@@ -146,53 +146,90 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
     glColor3f(1,1,1);
-    glBindTexture(GL_TEXTURE_2D,textures[1]);
+    if (!obj)
+        glBindTexture(GL_TEXTURE_2D,textures[3]);
+    else if (obj < 0 || obj > 2)
+        glDisable(GL_TEXTURE_2D);
 
-    //  Cube
-    glBegin(GL_QUADS);
+    glColor3f(1,1,1);
     //right
-    glColor3f(rgb[0],rgb[1],rgb[2]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[5]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[0],rgb[1],rgb[2]);
     glNormal3f(+1, 0, 0);
-    /*glTexCoord2f(0, 0);*/ glVertex3f(1, -1, -1);
-    /*glTexCoord2f(1, 0);*/ glVertex3f(1, 1, -1);
-    /*glTexCoord2f(1, 1);*/ glVertex3f(1, 1, 1);
-    /*glTexCoord2f(0, 1);*/ glVertex3f(1, -1, 1);
+    glTexCoord2f(0, 0); glVertex3f(1, -1, -1);
+    glTexCoord2f(1, 0); glVertex3f(1, 1, -1);
+    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
+    glTexCoord2f(0, 1); glVertex3f(1, -1, 1);
+    glEnd();
     //back
-    glColor3f(rgb[3],rgb[4],rgb[5]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[4]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0, 0,-1);
-    glVertex3f(-1, -1, -1);
-    glVertex3f(1, -1, -1);
-    glVertex3f(1, 1, -1);
-    glVertex3f(-1, 1, -1);
+    glTexCoord2f(0, 0); glVertex3f(-1, -1, -1);
+    glTexCoord2f(1, 0); glVertex3f(1, -1, -1);
+    glTexCoord2f(1, 1); glVertex3f(1, 1, -1);
+    glTexCoord2f(0, 1); glVertex3f(-1, 1, -1);
+    glEnd();
     //left
-    glColor3f(rgb[0],rgb[1],rgb[2]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[9]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[0],rgb[1],rgb[2]);
     glNormal3f(-1, 0, 0);
-    glVertex3f(-1, -1, -1);
-    glVertex3f(-1, 1, -1);
-    glVertex3f(-1, 1, 1);
-    glVertex3f(-1, -1, 1);
+    glTexCoord2f(1, 0); glVertex3f(-1, -1, -1);
+    glTexCoord2f(1, 1); glVertex3f(-1, 1, -1);
+    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
+    glTexCoord2f(0, 0); glVertex3f(-1, -1, 1);
+    glEnd();
     //top
-    glColor3f(rgb[3],rgb[4],rgb[5]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[8]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0,+1, 0);
-    glVertex3f(-1, 1, -1);
-    glVertex3f(1, 1, -1);
-    glVertex3f(1, 1, 1);
-    glVertex3f(-1, 1, 1);
+    glTexCoord2f(0, 0); glVertex3f(-1, 1, -1);
+    glTexCoord2f(1, 0); glVertex3f(1, 1, -1);
+    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
+    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
+    glEnd();
     //bottom
-    glColor3f(rgb[3],rgb[4],rgb[5]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0,-one, 0);
-    glVertex3f(-1, -1, -1);
-    glVertex3f(1, -1, -1);
-    glVertex3f(1, -1, 1);
-    glVertex3f(-1, -1, 1);
+    glTexCoord2f(0, 0); glVertex3f(-1, -1, -1);
+    glTexCoord2f(1, 0); glVertex3f(1, -1, -1);
+    glTexCoord2f(1, 1); glVertex3f(1, -1, 1);
+    glTexCoord2f(0, 1); glVertex3f(-1, -1, 1);
+    glEnd();
     //front
-    glColor3f(rgb[3],rgb[4],rgb[5]);
+    if (obj == 1)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    else if (obj == 2)
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glBegin(GL_QUADS);
+    // glColor3f(rgb[3],rgb[4],rgb[5]);
+    glColor3f(1,1,1);
     glNormal3f( 0, 0, 1);
-    glVertex3f(-1, -1, 1);
-    glVertex3f(1, -1, 1);
-    glVertex3f(1, 1, 1);
-    glVertex3f(-1, 1, 1);
-
+    glTexCoord2f(0, 0); glVertex3f(-1, -1, 1);
+    glTexCoord2f(1, 0); glVertex3f(1, -1, 1);
+    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
+    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
     glEnd();
     
     glPopMatrix();
@@ -215,7 +252,7 @@ static void ground(double x, double y, double z, double dx, double dy, double dz
     double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0}; // brown
     for (float i = -(dim-3); i <= (dim-3); i += (dim-3)/res) {
         for (float j = -(dim-3); j <= (dim-3); j += (dim-3)/res) {
-            rectangular_prism(i, y, j, (dim-3)/res, 1, (dim-3)/res, 0, 0, rgb2);
+            rectangular_prism(i, y, j, (dim-3)/res, 1, (dim-3)/res, 0, 0, rgb2, 0);
         }
     }
     
@@ -241,12 +278,13 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     // }
     // glEnd();
 
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1,1,1);
+    glBindTexture(GL_TEXTURE_2D,textures[2]);
     glBegin(GL_QUADS);
     for (int angle = 0; angle < 360; angle += 10) {
-        glEnable(GL_TEXTURE_2D);
-        glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-        glColor3f(1,1,1);
-        glBindTexture(GL_TEXTURE_2D,textures[2]);
         glNormal3f(Cos(angle), 0, Sin(angle));
         glTexCoord2f(0, 0); glVertex3f(Cos(angle), 1, Sin(angle));
         glTexCoord2f(0, 1); glVertex3f(Cos(angle), -1, Sin(angle));
@@ -375,8 +413,8 @@ void display()
 
     double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
 
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1); // long body piece
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1); // wide body piece
+    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1, 1); // long body piece
+    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1, 2); // wide body piece
 
     cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
     cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
@@ -388,7 +426,7 @@ void display()
 
     cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
 
-    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 15);
+    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 10);
     // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
     // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
 
@@ -557,10 +595,18 @@ int main(int argc,char* argv[])
     glutIdleFunc(idle);
     //  Enable Z-buffer depth test
     glEnable(GL_DEPTH_TEST);
-    //  Pass control to GLUT for events
-    textures[0] = LoadTexBMP("textures/img1.bmp");
+
+    // using LoadTexBMP from the CSCIx229 library to load the textures
+    textures[0] = LoadTexBMP("textures/metal.bmp");
     textures[1] = LoadTexBMP("textures/wheel.bmp");
     textures[2] = LoadTexBMP("textures/tire.bmp");
+    textures[3] = LoadTexBMP("textures/dirt3.bmp");
+    textures[4] = LoadTexBMP("textures/grill.bmp");
+    textures[5] = LoadTexBMP("textures/side (1).bmp");
+    textures[6] = LoadTexBMP("textures/back.bmp");
+    textures[7] = LoadTexBMP("textures/bottom.bmp");
+    textures[8] = LoadTexBMP("textures/steeringwheel.bmp");
+    textures[9] = LoadTexBMP("textures/side (2).bmp");    
     glutMainLoop();
     //  Return to OS
     return 0;
