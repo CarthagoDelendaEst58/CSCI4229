@@ -1,4 +1,4 @@
-Robert Dumitrescu - CSCI 4229 - HW5
+Robert Dumitrescu - CSCI 4229 - HW6
 
 Compile the program with the command: "make"
 
@@ -13,6 +13,6 @@ THe light can be manually moved along its orbit with "f" and "F"
 The view can be rotated using the arrow keys
 Eye position can be altered in first person mode with w, a, s, and d
 
-This program is an extension of my hw4.
+This program is an extension of my hw5.
 
-Total time taken: 9 hours
+Total time taken: 8 hours
