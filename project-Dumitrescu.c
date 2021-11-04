@@ -585,7 +585,7 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("HW6 - Robert Dumitrescu");
+    glutCreateWindow("Race Project - Robert Dumitrescu");
     glClearColor((double)12/255,(double)28/255,(double)65/255, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);

@@ -1,5 +1,5 @@
 # Example 13
-EXE=hw6
+EXE=project
 
 # Main target
 all: $(EXE)
@@ -25,7 +25,7 @@ CLEAN=rm -f $(EXE) *.o *.a
 endif
 
 # Dependencies
-hw6.o: hw6-Dumitrescu.c CSCIx229.h
+project.o: project-Dumitrescu.c CSCIx229.h
 fatal.o: fatal.c CSCIx229.h
 errcheck.o: errcheck.c CSCIx229.h
 print.o: print.c CSCIx229.h
@@ -44,7 +44,7 @@ CSCIx229.a:fatal.o errcheck.o print.o loadtexbmp.o loadobj.o projection.o
 	g++ -c $(CFLG)  $<
 
 #  Link
-hw6:hw6-Dumitrescu.o   CSCIx229.a
+project:project-Dumitrescu.o   CSCIx229.a
 	gcc $(CFLG) -o $@ $^  $(LIBS)
 
 #  Clean
