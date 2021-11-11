@@ -33,6 +33,8 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define LEN 8194
+#define NUM_SCENES 2
+#define ANGLE_RES 10
 
 // These two convenience functions were borrowed from ex8
 // #define Cos(x) (cos((x)*3.14159265/180))
@@ -42,6 +44,7 @@ double th=30;  //  Rotation angle
 double ph=15;
 double fov=55;
 int mode = 0;
+int scene = 0;
 const double dim=8;
 double r;
 // double asp = (height>0) ? (double)width/height : 1;
@@ -146,17 +149,17 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
     glColor3f(1,1,1);
-    if (!obj)
-        glBindTexture(GL_TEXTURE_2D,textures[3]);
-    else if (obj < 0 || obj > 2)
-        glDisable(GL_TEXTURE_2D);
+    // if (!obj)
+    //     glBindTexture(GL_TEXTURE_2D,textures[3]);
+    // else if (obj < 0 || obj > 2)
+    //     glDisable(GL_TEXTURE_2D);
 
     glColor3f(1,1,1);
     //right
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[5]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[5]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[0],rgb[1],rgb[2]);
     glNormal3f(+1, 0, 0);
@@ -166,10 +169,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTexCoord2f(0, 1); glVertex3f(1, -1, 1);
     glEnd();
     //back
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[4]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[4]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0, 0,-1);
@@ -179,10 +182,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTexCoord2f(0, 1); glVertex3f(-1, 1, -1);
     glEnd();
     //left
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[9]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[9]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[0],rgb[1],rgb[2]);
     glNormal3f(-1, 0, 0);
@@ -192,10 +195,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTexCoord2f(0, 0); glVertex3f(-1, -1, 1);
     glEnd();
     //top
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[8]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[8]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0,+1, 0);
@@ -205,10 +208,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
     glEnd();
     //bottom
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[3],rgb[4],rgb[5]);
     glNormal3f( 0,-one, 0);
@@ -218,10 +221,10 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTexCoord2f(0, 1); glVertex3f(-1, -1, 1);
     glEnd();
     //front
-    if (obj == 1)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-    else if (obj == 2)
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // if (obj == 1)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
+    // else if (obj == 2)
+    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
     glBegin(GL_QUADS);
     // glColor3f(rgb[3],rgb[4],rgb[5]);
     glColor3f(1,1,1);
@@ -233,6 +236,71 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glEnd();
     
     glPopMatrix();
+}
+
+static void cube(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    float white[] = {1,1,1,1};
+    float black[] = {0,0,0,1};
+    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,white);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,black);
+    glPushMatrix();
+    //  Offset
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glBegin(GL_QUADS);
+    glNormal3f(+1, 0, 0);
+    glVertex3f(1, -1, -1);
+    glVertex3f(1, 1, -1);
+    glVertex3f(1, 1, 1);
+    glVertex3f(1, -1, 1);
+    glEnd();
+    //back
+    glBegin(GL_QUADS);
+    glNormal3f( 0, 0,-1);
+    glVertex3f(-1, -1, -1);
+    glVertex3f(1, -1, -1);
+    glVertex3f(1, 1, -1);
+    glVertex3f(-1, 1, -1);
+    glEnd();
+    //left
+    glBegin(GL_QUADS);
+    glNormal3f(-1, 0, 0);
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, 1, -1);
+    glVertex3f(-1, 1, 1);
+    glVertex3f(-1, -1, 1);
+    glEnd();
+    //top
+    glBegin(GL_QUADS);
+    glNormal3f( 0,+1, 0);
+    glVertex3f(-1, 1, -1);
+    glVertex3f(1, 1, -1);
+    glVertex3f(1, 1, 1);
+    glVertex3f(-1, 1, 1);
+    glEnd();
+    //bottom
+    glBegin(GL_QUADS);
+    glNormal3f( 0,-one, 0);
+    glVertex3f(-1, -1, -1);
+    glVertex3f(1, -1, -1);
+    glVertex3f(1, -1, 1);
+    glVertex3f(-1, -1, 1);
+    glEnd();
+    //front
+    glBegin(GL_QUADS);
+    glNormal3f( 0, 0, 1);
+    glVertex3f(-1, -1, 1);
+    glVertex3f(1, -1, 1);
+    glVertex3f(1, 1, 1);
+    glVertex3f(-1, 1, 1);
+    glEnd();
+    
+    glPopMatrix();
+
 }
 
 // draws the dirt ground as an array of res x res rectangular prisms
@@ -316,6 +384,93 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glPopMatrix();
 }
 
+static void road_90(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+    for (int angle = 0; angle < 90; angle += ANGLE_RES) {
+        glBegin(GL_QUADS);
+        glVertex3f(2*Cos(angle)/3, 0, 2*Sin(angle)/3);
+        glVertex3f(2*Cos(angle+ANGLE_RES)/3, 0, 2*Sin(angle+ANGLE_RES)/3);
+        glVertex3f(Cos(angle+ANGLE_RES)/3, 0, Sin(angle+ANGLE_RES)/3);
+        glVertex3f(Cos(angle)/3, 0, Sin(angle)/3);
+        glEnd();
+    }
+    glPopMatrix();
+}
+
+static void road_Straight(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+    for (double i = 0; i < 1-1.0/ANGLE_RES; i += 1.0/ANGLE_RES) {
+        glBegin(GL_QUADS);
+        glVertex3f(i, 0, -1.0/3);
+        glVertex3f(i, 0, -2.0/3);
+        glVertex3f(i+1.0/ANGLE_RES, 0, -2.0/3);
+        glVertex3f(i+1.0/ANGLE_RES, 0, -1.0/3);
+        glEnd();
+    }
+    glPopMatrix();
+}
+
+static void tractorScene() {
+    double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
+
+    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1, 1); // long body piece
+    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1, 2); // wide body piece
+
+    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
+    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
+
+    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90); // back axle
+
+    cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
+    cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
+
+    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
+
+    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 10);
+}
+
+static void tile_90Right(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glColor3f(0.008, 0.459, 0.086);
+    cube(0, -0.2, 0, 1, 0.2, 1, 0, 0);
+    glColor3f(0.1, 0.1, 0.1);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1,-1);
+    road_90(-1, 0, -1, 2, 2, 2, 0, 0);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glPopMatrix();
+}
+
+static void tile_Straight(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glColor3f(0.008, 0.459, 0.086);
+    cube(0, -0.2, 0, 1, 0.2, 1, 0, 0);
+    glColor3f(0.1, 0.1, 0.1);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1,-1);
+    road_Straight(-1, 0, 1, 2, 2, 2, 0, 0);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glPopMatrix();
+}
+
 int getSign(double x) {
     if (x < 0)
         return -1;
@@ -338,7 +493,7 @@ static void Project()
    glLoadIdentity();
    //  Perspective transformation
    if (mode)
-      gluPerspective(fov,asp,dim/16,16*dim);
+    gluPerspective(fov,asp,dim/16,16*dim);
    //  Orthogonal projection
    else
       glOrtho(-asp*dim, +asp*dim, -dim,+dim, -dim,+dim);
@@ -363,14 +518,14 @@ void display()
         double Ez = +2*dim*Cos(th)*Cos(ph);
         gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
     }
-    else if (mode == 2) { // first person
-        Lx = r*Sin(th) + xdiff; // changing coordinates to look at based on angle and position changes
-        Lz = -1*r*Cos(th)*Cos(ph) + zdiff;
-        Ly = r*Sin(ph);
+//     else if (mode == 2) { // first person
+//         Lx = r*Sin(th) + xdiff; // changing coordinates to look at based on angle and position changes
+//         Lz = -1*r*Cos(th)*Cos(ph) + zdiff;
+//         Ly = r*Sin(ph);
 
-        gluLookAt(Fx,Fy,Fz , Lx,Ly,Lz , 0,Cos(ph),0);
-    }
-   //  Orthogonal - set world orientation
+//         gluLookAt(Fx,Fy,Fz , Lx,Ly,Lz , 0,Cos(ph),0);
+//     }
+//    //  Orthogonal - set world orientation
     else
     {
         glRotatef(ph,1,0,0);
@@ -411,22 +566,16 @@ void display()
     else
         glDisable(GL_LIGHTING);
 
-    double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
-
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1, 1); // long body piece
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1, 2); // wide body piece
-
-    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
-    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
-
-    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90); // back axle
-
-    cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-    cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-
-    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
-
-    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 10);
+    if (!scene) {
+        // tile_Straight(0, 0, 0, dim/2, 1, dim/2, 0, 0);
+        tile_90Right(-dim/2, 0, -dim/2, dim/2, 1, dim/2, 180, 0);
+        tile_90Right(dim/2, 0, dim/2, dim/2, 1, dim/2, 0, 0);
+        tile_90Right(-dim/2, 0, dim/2, dim/2, 1, dim/2, 270, 0);
+        tile_90Right(dim/2, 0, -dim/2, dim/2, 1, dim/2, 90, 0);
+    }
+    else if (scene == 1)
+        tractorScene();
+    
     // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
     // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
 
@@ -485,11 +634,14 @@ void key(unsigned char ch,int x,int y)
     if (ch == 27)
         exit(0);
     else if (ch == 'm' || ch == 'M') {
-        mode = (mode+1)%3;
-        if (mode == 2) {
-            th = 0;
-            ph = 0;
-        }
+        mode = (mode+1)%2;
+        // if (mode == 2) {
+        //     th = 0;
+        //     ph = 0;
+        // }
+    }
+    else if (ch == 'g') {
+        scene = (scene+1)%NUM_SCENES;
     }
     else if (ch == 'F') { // pushes ball along its orbit
         zh += 5;
@@ -526,36 +678,36 @@ void key(unsigned char ch,int x,int y)
         }
     }
 
-    if (mode == 2) { // first person movement
-        double R = 2*r;
-        if (ch == 'w' || ch == 'W') {
-            xdiff += -1*(Fx-Lx)/R; // determining direction of view
-            zdiff += -1*(Fz-Lz)/R;
-            Fx = xdiff;
-            Fz = zdiff;
-        }
+    // if (mode == 2) { // first person movement
+    //     double R = 2*r;
+    //     if (ch == 'w' || ch == 'W') {
+    //         xdiff += -1*(Fx-Lx)/R; // determining direction of view
+    //         zdiff += -1*(Fz-Lz)/R;
+    //         Fx = xdiff;
+    //         Fz = zdiff;
+    //     }
 
-        else if (ch == 'a' || ch == 'A') {
-            xdiff += -1*(Fz-Lz)/R; 
-            zdiff += (Fx-Lx)/R;
-            Fx = xdiff;
-            Fz = zdiff;
-        }
+    //     else if (ch == 'a' || ch == 'A') {
+    //         xdiff += -1*(Fz-Lz)/R; 
+    //         zdiff += (Fx-Lx)/R;
+    //         Fx = xdiff;
+    //         Fz = zdiff;
+    //     }
 
-        else if (ch == 's' || ch == 'S') {
-            xdiff += (Fx-Lx)/R;
-            zdiff += (Fz-Lz)/R;
-            Fx = xdiff;
-            Fz = zdiff;
-        }
+    //     else if (ch == 's' || ch == 'S') {
+    //         xdiff += (Fx-Lx)/R;
+    //         zdiff += (Fz-Lz)/R;
+    //         Fx = xdiff;
+    //         Fz = zdiff;
+    //     }
 
-        else if (ch == 'd' || ch == 'D') {
-            xdiff += (Fz-Lz)/R;
-            zdiff += -1*(Fx-Lx)/R;
-            Fx = xdiff;
-            Fz = zdiff;
-        }
-    }
+    //     else if (ch == 'd' || ch == 'D') {
+    //         xdiff += (Fz-Lz)/R;
+    //         zdiff += -1*(Fx-Lx)/R;
+    //         Fx = xdiff;
+    //         Fz = zdiff;
+    //     }
+    // }
     glutIdleFunc(auto_move?idle:NULL);
     //  Reproject
     Project();
@@ -585,7 +737,7 @@ int main(int argc,char* argv[])
 
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     //  Create window
-    glutCreateWindow("Race Project - Robert Dumitrescu");
+    glutCreateWindow("Project - Robert Dumitrescu");
     glClearColor((double)12/255,(double)28/255,(double)65/255, 1); // background color
     //  Register display and key callbacks
     glutDisplayFunc(display);
