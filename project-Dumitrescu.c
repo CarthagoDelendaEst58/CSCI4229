@@ -1,7 +1,3 @@
-/*
-*  Hello World Triangle Version 3
-*/
-
 #define GL_GLEXT_PROTOTYPES
 
 #include <stdio.h>
@@ -30,11 +26,14 @@
 
 #define NUM_COORDS 50000
 #define BUFSIZE 128
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 900
 #define LEN 8194
-#define NUM_SCENES 2
+#define NUM_SCENES 1
 #define ANGLE_RES 10
+#define NUM_OBJECTS 1
+#define NUM_MODES 4
+#define NUM_CAMERAS 1
 
 // These two convenience functions were borrowed from ex8
 // #define Cos(x) (cos((x)*3.14159265/180))
@@ -42,10 +41,10 @@
 
 double th=30;  //  Rotation angle
 double ph=15;
-double fov=55;
-int mode = 0;
+double fov=50;
+int mode = 1;
 int scene = 0;
-const double dim=8;
+const double dim=20;
 double r;
 // double asp = (height>0) ? (double)width/height : 1;
 double asp = 1;
@@ -66,21 +65,53 @@ int smooth    =   1;  // Smooth/Flat shading
 int local     =   0;  // Local Viewer Model
 int emission  =   0;  // Emission intensity (%)
 double ambient   =  0.05;  // Ambient intensity (%)
-double diffuse   =  0.8;  // Diffuse doubleensity (%)
-double specular  =   0;  // Specular intensity (%)
+double diffuse   =  0.7;  // Diffuse doubleensity (%)
+double specular  =   0.05;  // Specular intensity (%)
 int shininess =   0;  // Shininess (power of two)
 float shiny   =   1;  // Shininess (value)
 int zh        =  90;  // Light azimuth
 float ylight  =   2;  // Elevation of light
 int t_since_spc;
 double rep=1;
-int auto_move = 1;
+int auto_move = 0;
 unsigned int textures[10];
-typedef struct {float x,y,z;} vtx;
+int objects[NUM_OBJECTS];
+typedef struct {double x,y,z;} vtx;
 typedef struct {int A,B,C;} tri;
+int car_th = 0;
+double car_velocity = 0;
+double deceleration = 0.8;
+double acceleration = 5;
+double rotation_rate = 90;
+double t;
 #define n 500
 vtx is[n];
+vtx car_vector;
+vtx car_pos;
+vtx cams[NUM_CAMERAS] = {{0, 20, 0}};
 
+typedef struct {
+    char m;
+    char f;
+    char F;
+    char g;
+    char r;
+    char R;
+    char w;
+    char a;
+    char s;
+    char d;
+    char v;
+    char V;
+    char spc;
+    char esc;
+    char left;
+    char down;
+    char up;
+    char right;
+} KeyState;
+
+KeyState state = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 /*
  *  Draw vertex in polar coordinates with normal
@@ -392,6 +423,7 @@ static void road_90(int x, int y, int z, double dx, double dy, double dz, double
     glScalef(dx,dy,dz);
     for (int angle = 0; angle < 90; angle += ANGLE_RES) {
         glBegin(GL_QUADS);
+        glNormal3f(0, 1, 0);
         glVertex3f(2*Cos(angle)/3, 0, 2*Sin(angle)/3);
         glVertex3f(2*Cos(angle+ANGLE_RES)/3, 0, 2*Sin(angle+ANGLE_RES)/3);
         glVertex3f(Cos(angle+ANGLE_RES)/3, 0, Sin(angle+ANGLE_RES)/3);
@@ -409,6 +441,7 @@ static void road_Straight(int x, int y, int z, double dx, double dy, double dz, 
     glScalef(dx,dy,dz);
     for (double i = 0; i < 1-1.0/ANGLE_RES; i += 1.0/ANGLE_RES) {
         glBegin(GL_QUADS);
+        glNormal3f(0, 1, 0);
         glVertex3f(i, 0, -1.0/3);
         glVertex3f(i, 0, -2.0/3);
         glVertex3f(i+1.0/ANGLE_RES, 0, -2.0/3);
@@ -471,6 +504,20 @@ static void tile_Straight(int x, int y, int z, double dx, double dy, double dz, 
     glPopMatrix();
 }
 
+static void f1(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glColor3f(1,1,1);
+    glCallList(objects[0]);
+
+    glPopMatrix();
+    return;
+}
+
 int getSign(double x) {
     if (x < 0)
         return -1;
@@ -503,6 +550,13 @@ static void Project()
    glLoadIdentity();
 }
 
+// Normalizes the x and z dimensions of the given vector
+void normalize(vtx * vector) {
+    double magnitude = sqrt(fabs(vector->x)*fabs(vector->x) + fabs(vector->z)*fabs(vector->z));
+    vector->x = vector->x / magnitude;
+    vector->z = vector->z / magnitude;
+}
+
 void display()
 {
     //  Clear screen and Z-buffer
@@ -510,6 +564,44 @@ void display()
     glEnable(GL_DEPTH_TEST);
     //  Reset transformations
     glLoadIdentity();
+
+    double t_since_last_call = glutGet(GLUT_ELAPSED_TIME)/1000.0 - t;
+    t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    // if (auto_move) {
+    //     // double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    //     zh = fmod(90*t,360.0);
+    // }
+    car_pos.x += car_velocity*car_vector.x*t_since_last_call;
+    car_pos.z += car_velocity*car_vector.z*t_since_last_call;
+
+    if (car_velocity > 0)
+        car_velocity -= deceleration*t_since_last_call;
+    else if (car_velocity < 0)
+        car_velocity += deceleration*t_since_last_call;
+
+    if (state.w) {
+        car_velocity += acceleration*t_since_last_call;
+    }
+    else if (state.s) {
+        car_velocity -= acceleration*t_since_last_call;
+    }
+    
+    if (state.d) {
+        double angle = rotation_rate*t_since_last_call;
+        car_th -= angle;
+        car_th = car_th%360;
+        car_vector.x = -1*Cos(car_th);
+        car_vector.z = Sin(car_th);
+        normalize(&car_vector);
+    }
+    if (state.a) {
+        double angle = rotation_rate*t_since_last_call;
+        car_th += angle;
+        car_th = car_th%360;
+        car_vector.x = -1*Cos(car_th);
+        car_vector.z = Sin(car_th);
+        normalize(&car_vector);
+    }
 
     if (mode == 1) // perspective
     {
@@ -526,10 +618,24 @@ void display()
 //         gluLookAt(Fx,Fy,Fz , Lx,Ly,Lz , 0,Cos(ph),0);
 //     }
 //    //  Orthogonal - set world orientation
-    else
+    else if (mode == 0)
     {
         glRotatef(ph,1,0,0);
         glRotatef(th,0,1,0);
+    }
+
+    else if (mode == 2) {
+        double Ex = car_pos.x - car_vector.x*5;
+        double Ez = car_pos.z - car_vector.z*5;
+        double Ey = car_pos.y + 2;
+        gluLookAt(Ex,Ey,Ez , car_pos.x,car_pos.y+1,car_pos.z , 0,1,0);
+    }
+
+    else if (mode == 3) {
+        double Ex = cams[0].x;
+        double Ez = cams[0].z;
+        double Ey = cams[0].y;
+        gluLookAt(Ex,Ey,Ez , car_pos.x,car_pos.y,car_pos.z , 0,cams[0].y+1,0);
     }
 
     glShadeModel(smooth ? GL_SMOOTH : GL_FLAT);
@@ -567,14 +673,19 @@ void display()
         glDisable(GL_LIGHTING);
 
     if (!scene) {
-        // tile_Straight(0, 0, 0, dim/2, 1, dim/2, 0, 0);
-        tile_90Right(-dim/2, 0, -dim/2, dim/2, 1, dim/2, 180, 0);
-        tile_90Right(dim/2, 0, dim/2, dim/2, 1, dim/2, 0, 0);
-        tile_90Right(-dim/2, 0, dim/2, dim/2, 1, dim/2, 270, 0);
-        tile_90Right(dim/2, 0, -dim/2, dim/2, 1, dim/2, 90, 0);
+        tile_Straight(0, 0, -dim/4, dim/4, 1, dim/4, 0, 0);
+        tile_Straight(0, 0, dim/4, dim/4, 1, dim/4, 0, 0);
+        tile_90Right(-dim/2, 0, -dim/4, dim/4, 1, dim/4, 180, 0);
+        tile_90Right(dim/2, 0, dim/4, dim/4, 1, dim/4, 0, 0);
+        tile_90Right(-dim/2, 0, dim/4, dim/4, 1, dim/4, 270, 0);
+        tile_90Right(dim/2, 0, -dim/4, dim/4, 1, dim/4, 90, 0);
+
+        f1(car_pos.x, car_pos.y, car_pos.z, 3/dim, 3/dim, 3/dim, car_th, 0);
     }
     else if (scene == 1)
         tractorScene();
+    else if (scene == 2)
+        f1(0, 0, 0, 1, 1, 1, 0, 0);
     
     // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
     // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
@@ -622,8 +733,46 @@ void special(int key,int x,int y)
 void idle()
 {
     //  Elapsed time in seconds
-    double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
-    zh = fmod(90*t,360.0);
+    
+    // double t_since_last_call = glutGet(GLUT_ELAPSED_TIME)/1000.0 - t;
+    // t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    // // if (auto_move) {
+    // //     // double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    // //     zh = fmod(90*t,360.0);
+    // // }
+    // car_pos.x += car_velocity*car_vector.x*t_since_last_call;
+    // car_pos.z += car_velocity*car_vector.z*t_since_last_call;
+
+    // if (car_velocity > 0)
+    //     car_velocity -= deceleration*t_since_last_call;
+    // else if (car_velocity < 0)
+    //     car_velocity += deceleration*t_since_last_call;
+
+    // if (state.w) {
+    //     car_velocity += acceleration*t_since_last_call;
+    // }
+    // else if (state.s) {
+    //     car_velocity -= acceleration*t_since_last_call;
+    // }
+    
+    // if (state.d) {
+    //     double angle = rotation_rate*t_since_last_call;
+    //     car_th -= angle;
+    //     car_th = car_th%360;
+    //     car_vector.x = -1*Cos(car_th);
+    //     car_vector.z = Sin(car_th);
+    //     normalize(&car_vector);
+    // }
+    // if (state.a) {
+    //     double angle = rotation_rate*t_since_last_call;
+    //     car_th += angle;
+    //     car_th = car_th%360;
+    //     car_vector.x = -1*Cos(car_th);
+    //     car_vector.z = Sin(car_th);
+    //     normalize(&car_vector);
+    // }
+    
+    
     glutPostRedisplay();
 }
 
@@ -634,7 +783,7 @@ void key(unsigned char ch,int x,int y)
     if (ch == 27)
         exit(0);
     else if (ch == 'm' || ch == 'M') {
-        mode = (mode+1)%2;
+        mode = (mode+1)%NUM_MODES;
         // if (mode == 2) {
         //     th = 0;
         //     ph = 0;
@@ -677,6 +826,18 @@ void key(unsigned char ch,int x,int y)
             distance = 1;
         }
     }
+    else if (ch == 'a') {
+        state.a = 1;
+    }
+    else if (ch == 'd') {
+        state.d = 1;
+    }
+    else if (ch == 'w') {
+        state.w = 1;
+    }
+    else if (ch == 's') {
+        state.s = 1;
+    }
 
     // if (mode == 2) { // first person movement
     //     double R = 2*r;
@@ -708,10 +869,37 @@ void key(unsigned char ch,int x,int y)
     //         Fz = zdiff;
     //     }
     // }
-    glutIdleFunc(auto_move?idle:NULL);
+    // glutIdleFunc(auto_move?idle:NULL);
     //  Reproject
     Project();
     //  Tell GLUT it is necessary to redisplay the scene
+    glutPostRedisplay();
+}
+
+void keyReleased(unsigned char ch,int x,int y) {
+    if (ch == 'w') {
+        state.w = 0;
+    }
+    else if (ch == 's') {
+        state.s = 0;
+    }
+    else if (ch == 'a') {
+        state.a = 0;
+    }
+    else if (ch == 'd') {
+        state.d = 0;
+    }
+}
+
+void mouse(int button, int state, int x, int y)
+{
+    if (button == 3 && fov > 20) { // Scroll up
+        fov -= 2;
+    }
+    else if (button == 4 && fov < 100) { // Scroll down
+        fov += 2;
+    }
+    Project();
     glutPostRedisplay();
 }
 
@@ -730,6 +918,9 @@ int main(int argc,char* argv[])
     r = dim*2;
     Fz = r;
     zdiff = r;
+
+    car_vector.x=-1; car_vector.y=0; car_vector.z=0;
+    car_pos.x=0; car_pos.y=0; car_pos.z=0;
     //  Initialize GLUT
     glutInit(&argc,argv);
     //  Request double buffered true color window with Z-buffer
@@ -744,7 +935,12 @@ int main(int argc,char* argv[])
     glutSpecialFunc(special);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(key);
+    glutKeyboardUpFunc(keyReleased);
     glutIdleFunc(idle);
+    glutMouseFunc(mouse);
+
+    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+
     //  Enable Z-buffer depth test
     glEnable(GL_DEPTH_TEST);
 
@@ -759,6 +955,9 @@ int main(int argc,char* argv[])
     textures[7] = LoadTexBMP("textures/bottom.bmp");
     textures[8] = LoadTexBMP("textures/steeringwheel.bmp");
     textures[9] = LoadTexBMP("textures/side (2).bmp");    
+
+    objects[0] = LoadOBJ("objects/low-poly-f1-car.obj");
+
     glutMainLoop();
     //  Return to OS
     return 0;
