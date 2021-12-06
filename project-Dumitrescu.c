@@ -29,22 +29,18 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 900
 #define LEN 8194
-#define NUM_SCENES 1
+#define NUM_SCENES 3
 #define ANGLE_RES 10
-#define NUM_OBJECTS 1
+#define NUM_OBJECTS 5
 #define NUM_MODES 4
 #define NUM_CAMERAS 1
 
-// These two convenience functions were borrowed from ex8
-// #define Cos(x) (cos((x)*3.14159265/180))
-// #define Sin(x) (sin((x)*3.14159265/180))
-
-double th=30;  //  Rotation angle
-double ph=15;
+double th=25;  //  Rotation angle
+double ph=25;
 double fov=50;
 int mode = 1;
-int scene = 0;
-const double dim=20;
+int scene = 2;
+const double dim=40;
 double r;
 // double asp = (height>0) ? (double)width/height : 1;
 double asp = 1;
@@ -64,13 +60,13 @@ int inc       =  10;  // Ball increment
 int smooth    =   1;  // Smooth/Flat shading
 int local     =   0;  // Local Viewer Model
 int emission  =   0;  // Emission intensity (%)
-double ambient   =  0.05;  // Ambient intensity (%)
-double diffuse   =  0.7;  // Diffuse doubleensity (%)
+double ambient   =  0.3;  // Ambient intensity (%)
+double diffuse   =  0.5;  // Diffuse doubleensity (%)
 double specular  =   0.05;  // Specular intensity (%)
 int shininess =   0;  // Shininess (power of two)
 float shiny   =   1;  // Shininess (value)
 int zh        =  90;  // Light azimuth
-float ylight  =   2;  // Elevation of light
+float ylight  =   20;  // Elevation of light
 int t_since_spc;
 double rep=1;
 int auto_move = 0;
@@ -83,13 +79,19 @@ double car_velocity = 0;
 double deceleration = 0.8;
 double acceleration = 5;
 double rotation_rate = 90;
+double windmill_rotation_rate = 30;
+double windmill_angle = 0;
 double t;
+int num_tree_positions = 0;
 #define n 500
 vtx is[n];
 vtx car_vector;
 vtx car_pos;
 vtx cams[NUM_CAMERAS] = {{0, 20, 0}};
+float * positions;
+int daytime = 1;
 
+// This structure keeps track of which keys are being held down
 typedef struct {
     char m;
     char f;
@@ -124,8 +126,8 @@ static void Vertex(double th,double ph)
    double z =         Sin(ph);
    //  For a sphere at the origin, the position
    //  and normal vectors are the same
-   glNormal3d(x,y,z);
-   glVertex3d(x,y,z);
+   glNormal3f(x,y,z);
+   glVertex3f(x,y,z);
 }
 
 /*
@@ -163,8 +165,8 @@ static void ball(double x,double y,double z,double r)
    glPopMatrix();
 }
 
-// I wrote this function with the guidance of the cube function from ex8 | texture stuff guided by ex15 and ex16
-static void rectangular_prism(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double rgb[6], int obj) {
+// This function was taken from an example
+static void cube(double x, double y, double z, double dx, double dy, double dz, double th, double ph, double delta, int object) {
     float white[] = {1,1,1,1};
     float black[] = {0,0,0,1};
     glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
@@ -175,112 +177,14 @@ static void rectangular_prism(double x, double y, double z, double dx, double dy
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
+    glRotatef(delta, 0, 0, 1);
     glScalef(dx,dy,dz);
 
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-    glColor3f(1,1,1);
-    // if (!obj)
-    //     glBindTexture(GL_TEXTURE_2D,textures[3]);
-    // else if (obj < 0 || obj > 2)
-    //     glDisable(GL_TEXTURE_2D);
-
-    glColor3f(1,1,1);
-    //right
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[5]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[0],rgb[1],rgb[2]);
-    glNormal3f(+1, 0, 0);
-    glTexCoord2f(0, 0); glVertex3f(1, -1, -1);
-    glTexCoord2f(1, 0); glVertex3f(1, 1, -1);
-    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
-    glTexCoord2f(0, 1); glVertex3f(1, -1, 1);
-    glEnd();
-    //back
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[4]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[3],rgb[4],rgb[5]);
-    glNormal3f( 0, 0,-1);
-    glTexCoord2f(0, 0); glVertex3f(-1, -1, -1);
-    glTexCoord2f(1, 0); glVertex3f(1, -1, -1);
-    glTexCoord2f(1, 1); glVertex3f(1, 1, -1);
-    glTexCoord2f(0, 1); glVertex3f(-1, 1, -1);
-    glEnd();
-    //left
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[9]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[0],rgb[1],rgb[2]);
-    glNormal3f(-1, 0, 0);
-    glTexCoord2f(1, 0); glVertex3f(-1, -1, -1);
-    glTexCoord2f(1, 1); glVertex3f(-1, 1, -1);
-    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
-    glTexCoord2f(0, 0); glVertex3f(-1, -1, 1);
-    glEnd();
-    //top
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[8]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[3],rgb[4],rgb[5]);
-    glNormal3f( 0,+1, 0);
-    glTexCoord2f(0, 0); glVertex3f(-1, 1, -1);
-    glTexCoord2f(1, 0); glVertex3f(1, 1, -1);
-    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
-    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
-    glEnd();
-    //bottom
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[3],rgb[4],rgb[5]);
-    glNormal3f( 0,-one, 0);
-    glTexCoord2f(0, 0); glVertex3f(-1, -1, -1);
-    glTexCoord2f(1, 0); glVertex3f(1, -1, -1);
-    glTexCoord2f(1, 1); glVertex3f(1, -1, 1);
-    glTexCoord2f(0, 1); glVertex3f(-1, -1, 1);
-    glEnd();
-    //front
-    // if (obj == 1)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    // else if (obj == 2)
-    //     glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glBegin(GL_QUADS);
-    // glColor3f(rgb[3],rgb[4],rgb[5]);
-    glColor3f(1,1,1);
-    glNormal3f( 0, 0, 1);
-    glTexCoord2f(0, 0); glVertex3f(-1, -1, 1);
-    glTexCoord2f(1, 0); glVertex3f(1, -1, 1);
-    glTexCoord2f(1, 1); glVertex3f(1, 1, 1);
-    glTexCoord2f(0, 1); glVertex3f(-1, 1, 1);
-    glEnd();
-    
-    glPopMatrix();
-}
-
-static void cube(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
-    float white[] = {1,1,1,1};
-    float black[] = {0,0,0,1};
-    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,white);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,black);
-    glPushMatrix();
-    //  Offset
-    glTranslatef(x,y,z);
-    glRotatef(th,0,1,0);
-    glRotatef(ph,1,0,0);
-    glScalef(dx,dy,dz);
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D,textures[object]);
+    // glBindTexture(GL_TEXTURE_2D,textures[1]);
 
     glBegin(GL_QUADS);
     glNormal3f(+1, 0, 0);
@@ -292,10 +196,10 @@ static void cube(double x, double y, double z, double dx, double dy, double dz, 
     //back
     glBegin(GL_QUADS);
     glNormal3f( 0, 0,-1);
-    glVertex3f(-1, -1, -1);
-    glVertex3f(1, -1, -1);
-    glVertex3f(1, 1, -1);
-    glVertex3f(-1, 1, -1);
+    if (object == 2 || object == 7) { glTexCoord2f(0, 0); }  glVertex3f(-1, -1, -1);
+    if (object == 2 || object == 7) { glTexCoord2f(1, 0); } glVertex3f(1, -1, -1);
+    if (object == 2 || object == 7) { glTexCoord2f(1, 1); } glVertex3f(1, 1, -1);
+    if (object == 2 || object == 7) { glTexCoord2f(0, 1); } glVertex3f(-1, 1, -1);
     glEnd();
     //left
     glBegin(GL_QUADS);
@@ -308,10 +212,10 @@ static void cube(double x, double y, double z, double dx, double dy, double dz, 
     //top
     glBegin(GL_QUADS);
     glNormal3f( 0,+1, 0);
-    glVertex3f(-1, 1, -1);
-    glVertex3f(1, 1, -1);
-    glVertex3f(1, 1, 1);
-    glVertex3f(-1, 1, 1);
+    if (object == 0) { glTexCoord2f(0, 0); } glVertex3f(-1, 1, -1);
+    if (object == 0) { glTexCoord2f(1, 0); } glVertex3f(1, 1, -1);
+    if (object == 0) { glTexCoord2f(1, 1); } glVertex3f(1, 1, 1);
+    if (object == 0) { glTexCoord2f(0, 1); } glVertex3f(-1, 1, 1);
     glEnd();
     //bottom
     glBegin(GL_QUADS);
@@ -324,38 +228,14 @@ static void cube(double x, double y, double z, double dx, double dy, double dz, 
     //front
     glBegin(GL_QUADS);
     glNormal3f( 0, 0, 1);
-    glVertex3f(-1, -1, 1);
-    glVertex3f(1, -1, 1);
-    glVertex3f(1, 1, 1);
-    glVertex3f(-1, 1, 1);
+    if (object == 2 || object == 7) { glTexCoord2f(0, 0); }  glVertex3f(-1, -1, 1);
+    if (object == 2 || object == 7) { glTexCoord2f(1, 0); }  glVertex3f(1, -1, 1);
+    if (object == 2 || object == 7) { glTexCoord2f(1, 1); }  glVertex3f(1, 1, 1);
+    if (object == 2 || object == 7) { glTexCoord2f(0, 1); }  glVertex3f(-1, 1, 1);
     glEnd();
     
     glPopMatrix();
 
-}
-
-// draws the dirt ground as an array of res x res rectangular prisms
-static void ground(double x, double y, double z, double dx, double dy, double dz, double th, double ph, int res) {
-    float white[] = {1,1,1,1};
-    float black[] = {0,0,0,1};
-    glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,shiny);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,white);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,black);
-    glPushMatrix();
-    //  Offset
-    glTranslatef(x,y,z);
-    glRotatef(th,0,1,0);
-    glRotatef(ph,1,0,0);
-    glScalef(dx,dy,dz);
-
-    double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0}; // brown
-    for (float i = -(dim-3); i <= (dim-3); i += (dim-3)/res) {
-        for (float j = -(dim-3); j <= (dim-3); j += (dim-3)/res) {
-            rectangular_prism(i, y, j, (dim-3)/res, 1, (dim-3)/res, 0, 0, rgb2, 0);
-        }
-    }
-    
-    glPopMatrix();
 }
 
 // This function takes inspiration from the sphere1 function from ex8, essentially drawing one latitude band with no angle and using triangle fans for the lid
@@ -368,20 +248,11 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glScalef(dx,dy,dz);
 
     // drawing the shell
-    // glColor3f(0.314, 0.345, 0.361);
-    // glBegin(GL_QUAD_STRIP);
-    // for (int angle = 0; angle <= 360; angle += 10) {
-    //     glNormal3f(Cos(angle), 0, Sin(angle));
-    //     glVertex3f(Cos(angle), 1, Sin(angle));
-    //     glVertex3f(Cos(angle), -1, Sin(angle));
-    // }
-    // glEnd();
-
 
     glEnable(GL_TEXTURE_2D);
     glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
     glColor3f(1,1,1);
-    glBindTexture(GL_TEXTURE_2D,textures[2]);
+    // glBindTexture(GL_TEXTURE_2D,textures[2]);
     glBegin(GL_QUADS);
     for (int angle = 0; angle < 360; angle += 10) {
         glNormal3f(Cos(angle), 0, Sin(angle));
@@ -393,12 +264,12 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
     glEnd();
 
     // drawing the two lids
-    glColor3f(0.871, 0.871, 0.122);
+    glColor3f(1,1,1);
     for (int i = 1; i >= -1; i-=2) {
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
         glColor3f(1,1,1);
-        glBindTexture(GL_TEXTURE_2D,textures[1]);
+        // glBindTexture(GL_TEXTURE_2D,textures[1]);
 
         glBegin(GL_TRIANGLE_FAN);
         glNormal3f(0, i, 0);
@@ -411,66 +282,83 @@ static void cylinder(double x, double y, double z, double dx, double dy, double 
         }
         glEnd();
     }
+    glDisable(GL_TEXTURE_2D);
 
     glPopMatrix();
 }
 
+// Draws a road turning 90 degrees
 static void road_90(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D,textures[1]);
+
     for (int angle = 0; angle < 90; angle += ANGLE_RES) {
         glBegin(GL_QUADS);
         glNormal3f(0, 1, 0);
-        glVertex3f(2*Cos(angle)/3, 0, 2*Sin(angle)/3);
-        glVertex3f(2*Cos(angle+ANGLE_RES)/3, 0, 2*Sin(angle+ANGLE_RES)/3);
-        glVertex3f(Cos(angle+ANGLE_RES)/3, 0, Sin(angle+ANGLE_RES)/3);
-        glVertex3f(Cos(angle)/3, 0, Sin(angle)/3);
+        glTexCoord2f(angle/90, 1); glVertex3f(2*Cos(angle)/3, 0, 2*Sin(angle)/3);
+        glTexCoord2f(angle+ANGLE_RES/90, 1); glVertex3f(2*Cos(angle+ANGLE_RES)/3, 0, 2*Sin(angle+ANGLE_RES)/3);
+        glTexCoord2f(angle+ANGLE_RES/90,0); glVertex3f(Cos(angle+ANGLE_RES)/3, 0, Sin(angle+ANGLE_RES)/3);
+        glTexCoord2f(angle/90, 0); glVertex3f(Cos(angle)/3, 0, Sin(angle)/3);
         glEnd();
     }
     glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 }
 
+// Draws a straight road
 static void road_Straight(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D,textures[1]);
+
     for (double i = 0; i < 1-1.0/ANGLE_RES; i += 1.0/ANGLE_RES) {
         glBegin(GL_QUADS);
         glNormal3f(0, 1, 0);
-        glVertex3f(i, 0, -1.0/3);
-        glVertex3f(i, 0, -2.0/3);
-        glVertex3f(i+1.0/ANGLE_RES, 0, -2.0/3);
-        glVertex3f(i+1.0/ANGLE_RES, 0, -1.0/3);
+        glTexCoord2f(i, 1); glVertex3f(i, 0, -1.0/3);
+        glTexCoord2f(i, 0); glVertex3f(i, 0, -2.0/3);
+        glTexCoord2f(i + 1.0/ANGLE_RES, 0); glVertex3f(i+1.0/ANGLE_RES, 0, -2.0/3);
+        glTexCoord2f(i + 1.0/ANGLE_RES, 1); glVertex3f(i+1.0/ANGLE_RES, 0, -1.0/3);
         glEnd();
     }
     glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 }
 
-static void tractorScene() {
-    double rgb1[] = {0.129, 0.529, 0.118, 0.071, 0.388, 0.059}; // array of 2 different colors to be used when making the vehicle body
+// Draws a banner denoting the finish line
+static void finishLine(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
 
-    rectangular_prism(-1, 0, 0, 0.5, 0.5, 1.2, 90, 0, rgb1, 1); // long body piece
-    rectangular_prism(0.5, 0.2, 0, 0.5, 0.65, 1, 0, 0, rgb1, 2); // wide body piece
+    glColor3f(1, 1, 1);
+    cylinder(-0.5, 0.25, 0, 0.01, 0.25, 0.01, 0, 0);
+    cylinder(0.5, 0.25, 0, 0.01, 0.25, 0.01, 0, 0);
+    cube(0, 0.45, 0, 0.5, 0.08, 0.01, 0, 0, 0, 2);
 
-    cylinder(0.5, -0.15, 1.4, 1, 0.2, 1, 0, 90); // back left wheel
-    cylinder(0.5, -0.15, -1.4, 1, 0.2, 1, 0, 90); // back right wheel
-
-    cylinder(0.5, -0.15, 0, 0.1, 1.5, 0.1, 0, 90); // back axle
-
-    cylinder(-2, -0.45, 0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-    cylinder(-2, -0.45, -0.8, 0.7, 0.2, 0.7, 0, 90); // front left wheel
-
-    cylinder(-2, -0.45, 0, 0.1, 0.8, 0.1, 0, 90); // front axle
-
-    ground(0, -1.13, 0, 1, 0.2, 1, 0, 0, 10);
+    glPopMatrix();
 }
 
-static void tile_90Right(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+// Draws a tile using the 90 degree road
+static void tile_90Right(int x, int y, int z, double dx, double dy, double dz, double th, double ph, char isFinish) {
     glPushMatrix();
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
@@ -478,32 +366,44 @@ static void tile_90Right(int x, int y, int z, double dx, double dy, double dz, d
     glScalef(dx,dy,dz);
 
     glColor3f(0.008, 0.459, 0.086);
-    cube(0, -0.2, 0, 1, 0.2, 1, 0, 0);
+    cube(0, -0.05, 0, 1, 0.05, 1, 0, 0, 0, 0);
     glColor3f(0.1, 0.1, 0.1);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1,-1);
     road_90(-1, 0, -1, 2, 2, 2, 0, 0);
     glDisable(GL_POLYGON_OFFSET_FILL);
+
+    if (isFinish) {
+        finishLine(-0.3, 0, -0.3, 1, 1, 1, 135, 0);
+    }
+
     glPopMatrix();
 }
 
-static void tile_Straight(int x, int y, int z, double dx, double dy, double dz, double th, double ph) {
+// Draws a tile using the straight road
+static void tile_Straight(int x, int y, int z, double dx, double dy, double dz, double th, double ph, char isFinish) {
     glPushMatrix();
     glTranslatef(x,y,z);
     glRotatef(th,0,1,0);
     glRotatef(ph,1,0,0);
     glScalef(dx,dy,dz);
 
-    glColor3f(0.008, 0.459, 0.086);
-    cube(0, -0.2, 0, 1, 0.2, 1, 0, 0);
+    // glColor3f(0.008, 0.459, 0.086);
+    cube(0, -0.05, 0, 1, 0.05, 1, 0, 0, 0, 0);
     glColor3f(0.1, 0.1, 0.1);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1,-1);
     road_Straight(-1, 0, 1, 2, 2, 2, 0, 0);
     glDisable(GL_POLYGON_OFFSET_FILL);
+
+    if (isFinish) {
+        finishLine(0, 0, 0, 1, 1, 1, 90, 0);
+    }
+
     glPopMatrix();
 }
 
+// Draws the f1 car model loaded from objects/low-poly-f1-car.obj using a draw list
 static void f1(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
     glPushMatrix();
     glTranslatef(x,y,z);
@@ -514,8 +414,141 @@ static void f1(double x, double y, double z, double dx, double dy, double dz, do
     glColor3f(1,1,1);
     glCallList(objects[0]);
 
+    if (state.s) {
+        float Ambient[] = {0, 0, 0, 1.0};
+        float Diffuse[] = {0.2, 0, 0, 1.0};
+        float Specular[] = {0, 0, 0, 1.0};
+        float Position[]  = {8, 2, 0 ,1.0};
+
+        // glColor3f(1,1,1);
+        // ball(Position[0],Position[1],Position[2] , 0.1)
+
+        glEnable(GL_NORMALIZE);
+        glEnable(GL_LIGHTING);
+        glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER,local);
+        glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_LIGHT1);
+        glLightfv(GL_LIGHT1,GL_AMBIENT ,Ambient);
+        glLightfv(GL_LIGHT1,GL_DIFFUSE ,Diffuse);
+        glLightfv(GL_LIGHT1,GL_SPECULAR,Specular);
+        glLightfv(GL_LIGHT1,GL_POSITION,Position);
+    }
+    else {
+        glDisable(GL_LIGHT1);
+    }
+    // glCallList(objects[2]);
+    // glCallList(objects[1]);
+
     glPopMatrix();
-    return;
+}
+
+// Draws a windmill using a cone and a conical cylinder shap
+// The windmill blades rotate at a rate determined by the global variable: windmill_rotation_rate
+static void windmill(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D,textures[5]);
+
+    glBegin(GL_QUADS);
+    for (int angle = 0; angle < 360; angle += 5) {
+        glNormal3f(0.8*Cos(angle), 0, 0.8*Sin(angle));
+        glTexCoord2f(angle/360.0, 0); glVertex3f(0.5*Cos(angle), 1, 0.5*Sin(angle));
+        glTexCoord2f(angle/360.0, 1); glVertex3f(0.8*Cos(angle), -1, 0.8*Sin(angle));
+        glTexCoord2f((angle+5)/360.0, 1); glVertex3f(0.8*Cos(angle+5), -1, 0.8*Sin(angle+5));
+        glTexCoord2f((angle+5)/360.0, 0); glVertex3f(0.5*Cos(angle+5), 1, 0.5*Sin(angle+5));
+    }
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D,textures[6]);
+    glBegin(GL_TRIANGLES);
+    for (int angle = 0; angle < 360; angle += 5) {
+        glNormal3f(0.8*Cos(angle), 0, 0.8*Sin(angle));
+        glTexCoord2f((angle+2.5)/360.0, 1); glVertex3f(0, 1.5, 0);
+        glTexCoord2f(angle/360.0, 0); glVertex3f(0.5*Cos(angle), 1, 0.5*Sin(angle));
+        glTexCoord2f(angle+5/360, 0); glVertex3f(0.5*Cos(angle+5), 1, 0.5*Sin(angle+5));
+    }
+    glEnd();
+
+    cylinder(0, 1.2, 0.4, 0.05, 0.3, 0.05, 0, 90);
+
+    cube(0, 1.2, 0.7, 0.05, 1, 0.02, 0, 0, windmill_angle, 7);
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1,-1);
+    cube(0, 1.2, 0.7, 0.05, 1, 0.02, 0, 0, 90+windmill_angle, 7);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glDisable(GL_TEXTURE_2D);
+    glPopMatrix();
+}
+
+static void skybox(double scale) {
+    glPushMatrix();
+    glScalef(scale, scale, scale);
+
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
+    glColor3f(1, 1, 1);
+    if (daytime) {
+        glBindTexture(GL_TEXTURE_2D,textures[3]);
+    }
+    else {
+        glBindTexture(GL_TEXTURE_2D,textures[4]);
+    }
+
+    glDisable(GL_LIGHTING);
+
+    glBegin(GL_QUAD_STRIP);
+    glTexCoord2f(0, 1.0/3+0.002); glVertex3f(-1, -1, -1);
+    glTexCoord2f(0, 2.0/3-0.002); glVertex3f(-1, 1, -1);
+    glTexCoord2f(0.25, 1.0/3+0.002); glVertex3f(1, -1, -1);
+    glTexCoord2f(0.25, 2.0/3-0.002); glVertex3f(1, 1, -1);
+
+    glTexCoord2f(0.5, 1.0/3+0.002); glVertex3f(1, -1, 1);
+    glTexCoord2f(0.5, 2.0/3-0.002); glVertex3f(1, 1, 1);
+
+    glTexCoord2f(0.75, 1.0/3+0.002); glVertex3f(-1, -1, 1);
+    glTexCoord2f(0.75, 2.0/3-0.002); glVertex3f(-1, 1, 1);
+
+    glTexCoord2f(1, 1.0/3+0.002); glVertex3f(-1, -1, -1);
+    glTexCoord2f(1, 2.0/3-0.002); glVertex3f(-1, 1, -1);
+    glEnd();
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.25, 1); glVertex3f(-1, 1, -1);
+    glTexCoord2f(0.25, 2.0/3); glVertex3f(1, 1, -1);
+    glTexCoord2f(0.5, 2.0/3); glVertex3f(1, 1, 1);
+    glTexCoord2f(0.5, 1); glVertex3f(-1, 1, 1);
+
+    glTexCoord2f(1.0/3, 0); glVertex3f(-1, -1, -1);
+    glTexCoord2f(0.25, 1.0/3); glVertex3f(1, -1, -1);
+    glTexCoord2f(0.5, 1.0/3); glVertex3f(1, -1, 1);
+    glTexCoord2f(0.5, -0); glVertex3f(-1, -1, 1);
+    glEnd();
+
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_LIGHTING);
+    glPopMatrix();
+}
+
+static void tree(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    glColor3f(1,1,1);
+    glCallList(objects[1]);
+
+    glPopMatrix();
 }
 
 int getSign(double x) {
@@ -557,6 +590,42 @@ void normalize(vtx * vector) {
     vector->z = vector->z / magnitude;
 }
 
+// Draws the tree defined by vertices in TreeGenerator/tree.txt
+// This function is a modified version of the function of the same name stored in this repository: https://github.com/teaprog/RandomGeneratedFractalTrees/blob/master/main.cpp
+void drawTree(int lines) {
+    if (lines > num_tree_positions)
+        return;
+
+    for (size_t i = 0; i < lines*4; i+=4) {
+        // glColor3f(1.0f / (sizes.at(i) * treeRed),  1.0f / (sizes.at(i) * treeGreen), 0.0f); 
+        glColor3f(1,1,1);
+        glLineWidth(positions[i+2]/40.0f + 1.0f);
+
+        glPushMatrix();
+        glTranslatef(positions[i], positions[i+1]+5, 0.0f);
+        glRotatef(positions[i+3], 1.0f, 0.0f, 1.0f);
+
+        glBegin(GL_LINES);
+
+        glVertex2f(0.0f, 0.0f);
+        glVertex2f(0.0f, -positions[i+2]);
+
+        glEnd();
+        glPopMatrix();
+    }
+}
+
+// Wraps the drawTree function
+void treeWrapper(double x, double y, double z, double dx, double dy, double dz, double th, double ph) {
+    glPushMatrix();
+    glTranslatef(x,y,z);
+    glRotatef(th,0,1,0);
+    glRotatef(ph,1,0,0);
+    glScalef(dx,dy,dz);
+
+    drawTree(num_tree_positions);
+}
+
 void display()
 {
     //  Clear screen and Z-buffer
@@ -565,8 +634,9 @@ void display()
     //  Reset transformations
     glLoadIdentity();
 
-    double t_since_last_call = glutGet(GLUT_ELAPSED_TIME)/1000.0 - t;
-    t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    double now = glutGet(GLUT_ELAPSED_TIME)/1000.0;
+    double t_since_last_call =  now - t;
+    t = now;
     // if (auto_move) {
     //     // double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
     //     zh = fmod(90*t,360.0);
@@ -575,48 +645,66 @@ void display()
     car_pos.z += car_velocity*car_vector.z*t_since_last_call;
 
     if (car_velocity > 0)
-        car_velocity -= deceleration*t_since_last_call;
+        car_velocity -= deceleration*t_since_last_call; // engine braking
     else if (car_velocity < 0)
         car_velocity += deceleration*t_since_last_call;
 
-    if (state.w) {
+    if (state.w) { // the w key is being held
         car_velocity += acceleration*t_since_last_call;
     }
-    else if (state.s) {
+    else if (state.s) { // the s key is being held
         car_velocity -= acceleration*t_since_last_call;
     }
     
-    if (state.d) {
+    if (state.d) { // the d key is being held
         double angle = rotation_rate*t_since_last_call;
         car_th -= angle;
         car_th = car_th%360;
-        car_vector.x = -1*Cos(car_th);
+        car_vector.x = -1*Cos(car_th); // rotate car
         car_vector.z = Sin(car_th);
-        normalize(&car_vector);
+        normalize(&car_vector); // ensure the vector does not change in magnitude
     }
-    if (state.a) {
+    if (state.a) { // the a key is being held
         double angle = rotation_rate*t_since_last_call;
         car_th += angle;
         car_th = car_th%360;
-        car_vector.x = -1*Cos(car_th);
+        car_vector.x = -1*Cos(car_th); // rotate car
         car_vector.z = Sin(car_th);
-        normalize(&car_vector);
+        normalize(&car_vector); // ensure the vector does not change in magnitude
     }
+
+    if (state.right) {
+        th += rotation_rate*t_since_last_call;
+        th = fmod(th, 360);
+    }
+    else if (state.left) {
+        th -= rotation_rate*t_since_last_call;
+        th = fmod(th, 360);
+    }
+
+    if (state.up) {
+        ph += rotation_rate*t_since_last_call;
+        if (ph > 75) {
+            ph = 75;
+        }
+    }
+    else if (state.down) {
+        ph -= rotation_rate*t_since_last_call;
+        if (ph < -75) {
+            ph = -75;
+        }
+    }
+
+    windmill_angle += windmill_rotation_rate*t_since_last_call;
+    windmill_angle = fmod(windmill_angle, 360); // rotate windmill blades
 
     if (mode == 1) // perspective
     {
-        double Ex = -2*dim*Sin(th)*Cos(ph);
-        double Ey = +2*dim        *Sin(ph);
-        double Ez = +2*dim*Cos(th)*Cos(ph);
+        double Ex = -dim*Sin(th)*Cos(ph);
+        double Ey = dim        *Sin(ph);
+        double Ez = dim*Cos(th)*Cos(ph);
         gluLookAt(Ex,Ey,Ez , 0,0,0 , 0,Cos(ph),0);
     }
-//     else if (mode == 2) { // first person
-//         Lx = r*Sin(th) + xdiff; // changing coordinates to look at based on angle and position changes
-//         Lz = -1*r*Cos(th)*Cos(ph) + zdiff;
-//         Ly = r*Sin(ph);
-
-//         gluLookAt(Fx,Fy,Fz , Lx,Ly,Lz , 0,Cos(ph),0);
-//     }
 //    //  Orthogonal - set world orientation
     else if (mode == 0)
     {
@@ -670,30 +758,31 @@ void display()
         glLightfv(GL_LIGHT0,GL_POSITION,Position);
     }
     else
-        glDisable(GL_LIGHTING);
+        // glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
 
     if (!scene) {
-        tile_Straight(0, 0, -dim/4, dim/4, 1, dim/4, 0, 0);
-        tile_Straight(0, 0, dim/4, dim/4, 1, dim/4, 0, 0);
-        tile_90Right(-dim/2, 0, -dim/4, dim/4, 1, dim/4, 180, 0);
-        tile_90Right(dim/2, 0, dim/4, dim/4, 1, dim/4, 0, 0);
-        tile_90Right(-dim/2, 0, dim/4, dim/4, 1, dim/4, 270, 0);
-        tile_90Right(dim/2, 0, -dim/4, dim/4, 1, dim/4, 90, 0);
+        skybox(dim);
+        // draw the track
+        tile_Straight(0, 0, -dim/4, dim/4, dim/4, dim/4, 0, 0, 1);
+        tile_Straight(0, 0, dim/4, dim/4, dim/4, dim/4, 0, 0, 0);
+        tile_90Right(-dim/2, 0, -dim/4, dim/4, dim/4, dim/4, 180, 0, 0);
+        tile_90Right(dim/2, 0, dim/4, dim/4, dim/4, dim/4, 0, 0, 0);
+        tile_90Right(-dim/2, 0, dim/4, dim/4, dim/4, dim/4, 270, 0, 0);
+        tile_90Right(dim/2, 0, -dim/4, dim/4, dim/4, dim/4, 90, 0, 0);
 
-        f1(car_pos.x, car_pos.y, car_pos.z, 3/dim, 3/dim, 3/dim, car_th, 0);
+        // draw the car
+        f1(car_pos.x, car_pos.y, car_pos.z, 0.1, 0.1, 0.1, car_th, 0);
     }
-    else if (scene == 1)
-        tractorScene();
-    else if (scene == 2)
-        f1(0, 0, 0, 1, 1, 1, 0, 0);
-    
-    // double rgb2[] = {0.459, 0.239, 0, 0.459, 0.239, 0};
-    // rectangular_prism(0, -1.4, 0, dim, 0.2, dim, 0, 0, rgb2);
-
-    // glWindowPos2i(5,5);
-    // Print("Mode: Orthogonal");
-
-    // glutGet(GLUT_ELAPSED_TIME);
+    else if (scene == 1) {
+        tree(0, 0, 0, 1, 1, 1, 0, 0);
+    }
+    else if (scene == 2) {
+        // treeWrapper(0, -5, -dim, 1, 1, 1, 0, 0);
+        // tile_Straight(0, 0, 0, dim/4, dim/4, dim/4, 0, 0, 0);
+        skybox(dim);
+        tile_90Right(0, 0, 0, dim/4, dim/4, dim/4, 0, 0, 0);
+    }
     
     glFlush();
     glutSwapBuffers();
@@ -707,72 +796,34 @@ void special(int key,int x,int y)
 {
     //  Right arrow - increase rotation by 5 degree
     if (key == GLUT_KEY_RIGHT) {
-        th += 5;     
+        // th += 10;     
+        state.right = 1;
     }
     //  Left arrow - decrease rotation by 5 degree
     else if (key == GLUT_KEY_LEFT) {
-        th -= 5;
+        // th -= 10;
+        state.left = 1;
     }
     //  Up arrow key - increase elevation by 5 degrees
     else if (key == GLUT_KEY_UP) {
-        ph += 5;
-        if (ph > 75) 
-            ph = 75;
+        // ph += 10;
+        state.up = 1;
+        // if (ph > 75) 
+        //     ph = 75;
     }
     //  Down arrow key - decrease elevation by 5 degrees
     else if (key == GLUT_KEY_DOWN) {
-        ph -= 5;
-        if (ph < -75)
-            ph = -75;
+        // ph -= 10;
+        state.down = 1;
+        // if (ph < -75)
+        //     ph = -75;
     }
     //  Request display update
     glutPostRedisplay();
 }
 
-// this function was borrowed from ex13
 void idle()
 {
-    //  Elapsed time in seconds
-    
-    // double t_since_last_call = glutGet(GLUT_ELAPSED_TIME)/1000.0 - t;
-    // t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
-    // // if (auto_move) {
-    // //     // double t = glutGet(GLUT_ELAPSED_TIME)/1000.0;
-    // //     zh = fmod(90*t,360.0);
-    // // }
-    // car_pos.x += car_velocity*car_vector.x*t_since_last_call;
-    // car_pos.z += car_velocity*car_vector.z*t_since_last_call;
-
-    // if (car_velocity > 0)
-    //     car_velocity -= deceleration*t_since_last_call;
-    // else if (car_velocity < 0)
-    //     car_velocity += deceleration*t_since_last_call;
-
-    // if (state.w) {
-    //     car_velocity += acceleration*t_since_last_call;
-    // }
-    // else if (state.s) {
-    //     car_velocity -= acceleration*t_since_last_call;
-    // }
-    
-    // if (state.d) {
-    //     double angle = rotation_rate*t_since_last_call;
-    //     car_th -= angle;
-    //     car_th = car_th%360;
-    //     car_vector.x = -1*Cos(car_th);
-    //     car_vector.z = Sin(car_th);
-    //     normalize(&car_vector);
-    // }
-    // if (state.a) {
-    //     double angle = rotation_rate*t_since_last_call;
-    //     car_th += angle;
-    //     car_th = car_th%360;
-    //     car_vector.x = -1*Cos(car_th);
-    //     car_vector.z = Sin(car_th);
-    //     normalize(&car_vector);
-    // }
-    
-    
     glutPostRedisplay();
 }
 
@@ -784,10 +835,6 @@ void key(unsigned char ch,int x,int y)
         exit(0);
     else if (ch == 'm' || ch == 'M') {
         mode = (mode+1)%NUM_MODES;
-        // if (mode == 2) {
-        //     th = 0;
-        //     ph = 0;
-        // }
     }
     else if (ch == 'g') {
         scene = (scene+1)%NUM_SCENES;
@@ -838,38 +885,19 @@ void key(unsigned char ch,int x,int y)
     else if (ch == 's') {
         state.s = 1;
     }
-
-    // if (mode == 2) { // first person movement
-    //     double R = 2*r;
-    //     if (ch == 'w' || ch == 'W') {
-    //         xdiff += -1*(Fx-Lx)/R; // determining direction of view
-    //         zdiff += -1*(Fz-Lz)/R;
-    //         Fx = xdiff;
-    //         Fz = zdiff;
-    //     }
-
-    //     else if (ch == 'a' || ch == 'A') {
-    //         xdiff += -1*(Fz-Lz)/R; 
-    //         zdiff += (Fx-Lx)/R;
-    //         Fx = xdiff;
-    //         Fz = zdiff;
-    //     }
-
-    //     else if (ch == 's' || ch == 'S') {
-    //         xdiff += (Fx-Lx)/R;
-    //         zdiff += (Fz-Lz)/R;
-    //         Fx = xdiff;
-    //         Fz = zdiff;
-    //     }
-
-    //     else if (ch == 'd' || ch == 'D') {
-    //         xdiff += (Fz-Lz)/R;
-    //         zdiff += -1*(Fx-Lx)/R;
-    //         Fx = xdiff;
-    //         Fz = zdiff;
-    //     }
-    // }
-    // glutIdleFunc(auto_move?idle:NULL);
+    else if (ch == 't') {
+        daytime = !daytime;
+        if (daytime) {
+            ambient = 0.3;
+            diffuse = 0.7;
+            specular = 0.05;
+        }
+        else {
+            ambient = 0.05;
+            diffuse = 0.1;
+            specular = 0.00;
+        }
+    }
     //  Reproject
     Project();
     //  Tell GLUT it is necessary to redisplay the scene
@@ -888,6 +916,21 @@ void keyReleased(unsigned char ch,int x,int y) {
     }
     else if (ch == 'd') {
         state.d = 0;
+    }
+}
+
+void keySpecialReleased(int key,int x,int y) {
+    if (key == GLUT_KEY_RIGHT) {
+        state.right = 0;
+    }
+    else if (key == GLUT_KEY_LEFT) {
+        state.left = 0;
+    }
+    else if (key == GLUT_KEY_UP) {
+        state.up = 0;
+    }
+    else if (key == GLUT_KEY_DOWN) {
+        state.down = 0;
     }
 }
 
@@ -913,6 +956,49 @@ void reshape(int width,int height)
     Project();
 }
 
+// Loads the tree denoted by values stored in TreeGenerator/tree.txt
+void loadTree() {
+    FILE * fp = fopen("TreeGenerator/tree.txt", "r");
+    if (!fp) {
+        printf("File could not be opened");
+        return;
+    }
+    char len_str[6];
+    char * goawaywarning = fgets(len_str, 6, fp);
+    if (goawaywarning) {}
+    int len = atoi(len_str);
+    if (len > 0) {
+        num_tree_positions = len;
+        positions = malloc(sizeof(float)*num_tree_positions*4);
+        char buf[BUFSIZE];
+        int i = 0;
+        char * x;
+        char * y;
+        char * size;
+        char * angle;
+        while (fgets(buf, BUFSIZE, fp) && i < num_tree_positions*4) {
+            if (strlen(buf) > 6) {
+                x = strtok(buf, ",");
+                y = strtok(NULL, ",");
+                size = strtok(NULL, ",");
+                angle = strtok(NULL, "\n");
+
+                float x_val = atof(x)/100;
+                float y_val = atof(y)/100;
+                float size_val = atof(size)/100;
+                float angle_val = atof(angle);
+
+                positions[i] = x_val;
+                positions[i+1] = y_val;
+                positions[i+2] = size_val;
+                positions[i+3] = angle_val;
+
+                i += 4;
+            }
+        }
+    }
+}
+
 int main(int argc,char* argv[])
 {
     r = dim*2;
@@ -920,7 +1006,12 @@ int main(int argc,char* argv[])
     zdiff = r;
 
     car_vector.x=-1; car_vector.y=0; car_vector.z=0;
-    car_pos.x=0; car_pos.y=0; car_pos.z=0;
+    car_pos.x=0; car_pos.y=-0; car_pos.z=0;
+    loadTree();
+    if (!positions) {
+        printf("Tree could not load\n");
+    }
+
     //  Initialize GLUT
     glutInit(&argc,argv);
     //  Request double buffered true color window with Z-buffer
@@ -933,6 +1024,7 @@ int main(int argc,char* argv[])
     //  Register display and key callbacks
     glutDisplayFunc(display);
     glutSpecialFunc(special);
+    glutSpecialUpFunc(keySpecialReleased);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(key);
     glutKeyboardUpFunc(keyReleased);
@@ -945,20 +1037,25 @@ int main(int argc,char* argv[])
     glEnable(GL_DEPTH_TEST);
 
     // using LoadTexBMP from the CSCIx229 library to load the textures
-    textures[0] = LoadTexBMP("textures/metal.bmp");
-    textures[1] = LoadTexBMP("textures/wheel.bmp");
-    textures[2] = LoadTexBMP("textures/tire.bmp");
-    textures[3] = LoadTexBMP("textures/dirt3.bmp");
-    textures[4] = LoadTexBMP("textures/grill.bmp");
-    textures[5] = LoadTexBMP("textures/side (1).bmp");
-    textures[6] = LoadTexBMP("textures/back.bmp");
-    textures[7] = LoadTexBMP("textures/bottom.bmp");
-    textures[8] = LoadTexBMP("textures/steeringwheel.bmp");
-    textures[9] = LoadTexBMP("textures/side (2).bmp");    
+    textures[0] = LoadTexBMP("textures/grass (2).bmp");
+    textures[1] = LoadTexBMP("textures/road.bmp");
+    textures[2] = LoadTexBMP("textures/checker.bmp");
+    textures[3] = LoadTexBMP("textures/skybox.bmp");
+    textures[4] = LoadTexBMP("textures/night2.bmp");
+    textures[5] = LoadTexBMP("textures/cobble.bmp");
+    textures[6] = LoadTexBMP("textures/roof.bmp");
+    textures[7] = LoadTexBMP("textures/wood.bmp");
+    // textures[8] = LoadTexBMP("textures/steeringwheel.bmp");
+    // textures[9] = LoadTexBMP("textures/side (2).bmp");    
 
     objects[0] = LoadOBJ("objects/low-poly-f1-car.obj");
+    objects[1] = LoadOBJ("tree.obj");
+    // objects[1] = LoadOBJ("mclaren_prost.obj");
+    // objects[2] = LoadOBJ("Formula_1_mesh.obj");
 
     glutMainLoop();
+
+    free(positions);
     //  Return to OS
     return 0;
 }
